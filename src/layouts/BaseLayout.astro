@@ -1,0 +1,28 @@
+---
+import '/src/styles/global.css';
+const {
+  title = 'wildyoyu — Macro & Wildlife',
+  description = 'Portfolio de fotografía macro, naturaleza y wildlife'
+} = Astro.props;
+---
+<html lang="es" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <meta name="color-scheme" content="dark light" />
+  </head>
+  <body class="min-h-screen">
+    <slot />
+    <!-- Elige una de las dos formas, NO ambas a la vez -->
+
+    <!-- FORMA 1 (Astro.resolve): -->
+    <!-- <script type="module" src={Astro.resolve('../scripts/scroll-fallback.ts')}></script> -->
+
+    <!-- FORMA 2 (inline import, recomendada para evitar errores del editor): -->
+    <script type="module">
+      import '../scripts/scroll-fallback.ts';
+    </script>
+  </body>
+</html>
