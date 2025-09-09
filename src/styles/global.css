@@ -1,0 +1,95 @@
+@import "@fontsource-variable/inter/index.css";
+@import "@fontsource-variable/newsreader/index.css";
+
+html { font-family: InterVariable, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+.h1  { font-family: "Newsreader Variable", InterVariable, serif; font-variation-settings: "opsz" 32; }
+
+
+/* Reset razonable */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+img, picture, video, canvas { display:block; max-width:100%; }
+
+:root{
+  --bg: #0b0d10;
+  --fg: #e8ecef;
+  --muted: #9aa4ad;
+  --accent: #89c2ff;
+  --maxw: 1200px;
+  --radius: 18px;
+  --shadow: 0 10px 30px rgba(0,0,0,.25);
+  --title: clamp(2rem, 6vw, 4.5rem);
+  --lead: clamp(1rem, 2.2vw, 1.25rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+html {
+  color-scheme: dark;
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+}
+a { color: var(--fg); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.container { width: min(100% - 2rem, var(--maxw)); margin-inline: auto; }
+.section { padding-block: clamp(48px, 8vw, 120px); }
+.center { display:grid; place-items:center; }
+.shadow { box-shadow: var(--shadow); border-radius: var(--radius); }
+
+/* --- Scroll-driven CSS (nativo) con fallback JS --- */
+.hero-visual {
+  view-timeline-name: --hero;
+  view-timeline-axis: block;
+  animation-timeline: --hero;
+  animation-name: hero-zoom;
+  animation-range: entry 0% cover 60%;
+  animation-fill-mode: both;
+  will-change: transform, opacity;
+  transform-origin: center center;
+}
+
+@keyframes hero-zoom {
+  from { transform: scale(0.92) translateY(8vh); opacity: 0.75; }
+  to   { transform: scale(1.12) translateY(-4vh); opacity: 1; }
+}
+
+/* Pinned/sticky tipo Apple */
+.sticky-wrap { position: relative; height: 200svh; }
+.sticky { position: sticky; top: 0; height: 100svh; display:grid; place-items:center; }
+
+/* Parallax por tarjeta */
+.parallax-card {
+  view-timeline-name: --card;
+  view-timeline-axis: block;
+  animation-timeline: --card;
+  animation-name: parallax-rise;
+  animation-range: entry 0% cover 80%;
+  animation-fill-mode: both;
+  will-change: transform, opacity;
+  transform: translateY(6vh) scale(0.98);
+  opacity: 0.7;
+  overflow: clip;
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  outline: 1px solid rgba(255,255,255,.06);
+}
+
+@keyframes parallax-rise {
+  to { transform: translateY(-3vh) scale(1.02); opacity: 1; }
+}
+
+/* Títulos */
+.h1 { font-size: var(--title); line-height: .95; letter-spacing: -0.02em; }
+.lead { font-size: var(--lead); color: var(--muted); max-width: 70ch; }
+
+/* Placeholder visual (sustituirás por tus fotos) */
+.ph {
+  background:
+    radial-gradient(100% 80% at 20% 10%, rgba(137,194,255,.35), transparent 40%),
+    radial-gradient(100% 80% at 80% 90%, rgba(120,255,184,.25), transparent 40%),
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+}
