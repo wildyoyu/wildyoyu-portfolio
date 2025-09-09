@@ -1,9 +1,139 @@
-<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 128 128">
-    <path d="M50.4 78.5a75.1 75.1 0 0 0-28.5 6.9l24.2-65.7c.7-2 1.9-3.2 3.4-3.2h29c1.5 0 2.7 1.2 3.4 3.2l24.2 65.7s-11.6-7-28.5-7L67 45.5c-.4-1.7-1.6-2.8-2.9-2.8-1.3 0-2.5 1.1-2.9 2.7L50.4 78.5Zm-1.1 28.2Zm-4.2-20.2c-2 6.6-.6 15.8 4.2 20.2a17.5 17.5 0 0 1 .2-.7 5.5 5.5 0 0 1 5.7-4.5c2.8.1 4.3 1.5 4.7 4.7.2 1.1.2 2.3.2 3.5v.4c0 2.7.7 5.2 2.2 7.4a13 13 0 0 0 5.7 4.9v-.3l-.2-.3c-1.8-5.6-.5-9.5 4.4-12.8l1.5-1a73 73 0 0 0 3.2-2.2 16 16 0 0 0 6.8-11.4c.3-2 .1-4-.6-6l-.8.6-1.6 1a37 37 0 0 1-22.4 2.7c-5-.7-9.7-2-13.2-6.2Z" />
-    <style>
-        path { fill: #000; }
-        @media (prefers-color-scheme: dark) {
-            path { fill: #FFF; }
-        }
-    </style>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <!-- Palette -->
+    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#b9dfc6"/>
+      <stop offset="100%" stop-color="#a7d4bf"/>
+    </linearGradient>
+    <linearGradient id="riverGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e8fcff"/>
+      <stop offset="100%" stop-color="#bfe6ef"/>
+    </linearGradient>
+    <linearGradient id="badgeRing" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3a894c"/>
+      <stop offset="100%" stop-color="#2f6e42"/>
+    </linearGradient>
+    <clipPath id="circleClip">
+      <circle cx="512" cy="512" r="468"/>
+    </clipPath>
+    <!-- Curved baseline for the wordmark -->
+    <path id="text-arc" d="M 220 820 A 330 230 0 0 0 804 820" />
+    <!-- Subtle pattern for the monogram -->
+    <pattern id="waterPattern" patternUnits="userSpaceOnUse" width="24" height="12">
+      <path d="M0,6 C6,2 18,2 24,6 C18,10 6,10 0,6z" fill="none" stroke="#a6dfe9" stroke-width="1.5"/>
+    </pattern>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#0e3b28" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#f1f6f3"/>
+  <!-- Outer badge with double ring -->
+  <g transform="translate(0,0)">
+    <circle cx="512" cy="512" r="488" fill="white"/>
+    <circle cx="512" cy="512" r="468" fill="none" stroke="url(#badgeRing)" stroke-width="18"/>
+    <circle cx="512" cy="512" r="448" fill="none" stroke="#e8f3ea" stroke-width="12"/>
+  </g>
+
+  <!-- Scenic content clipped to the inner circle -->
+  <g clip-path="url(#circleClip)">
+    <!-- Sky -->
+    <rect x="0" y="0" width="1024" height="512" fill="url(#skyGrad)"/>
+    <!-- Back mountains -->
+    <path d="M0,520 L160,430 L280,500 L410,370 L520,540 L650,400 L760,520 L870,420 L1024,540 L1024,0 L0,0 Z"
+          fill="#1f5240"/>
+    <!-- Main mountain with snow caps -->
+    <g filter="url(#softShadow)">
+      <path d="M140,560 L360,360 L520,520 L660,380 L860,560 L860,720 L140,720 Z" fill="#1a4033"/>
+      <path d="M360,360 L420,420 L480,380 L520,520 L420,420 L380,470 Z" fill="#f4fbff"/>
+      <path d="M660,380 L720,440 L760,410 L860,560 L760,470 L700,520 Z" fill="#f4fbff"/>
+    </g>
+
+    <!-- Forest layers -->
+    <g opacity="0.95">
+      <rect x="0" y="600" width="1024" height="80" fill="#2a6646"/>
+      <rect x="0" y="640" width="1024" height="120" fill="#1e523b"/>
+      <rect x="0" y="720" width="1024" height="140" fill="#143a2b"/>
+      <!-- Simple pines -->
+      <g fill="#1c4b36">
+        <polygon points="40,760 56,700 72,760" /><polygon points="80,760 96,700 112,760" /><polygon points="120,760 136,700 152,760" /><polygon points="160,760 176,700 192,760" /><polygon points="200,760 216,700 232,760" /><polygon points="240,760 256,700 272,760" /><polygon points="280,760 296,700 312,760" /><polygon points="320,760 336,700 352,760" /><polygon points="360,760 376,700 392,760" /><polygon points="400,760 416,700 432,760" /><polygon points="440,760 456,700 472,760" /><polygon points="480,760 496,700 512,760" /><polygon points="520,760 536,700 552,760" /><polygon points="560,760 576,700 592,760" /><polygon points="600,760 616,700 632,760" /><polygon points="640,760 656,700 672,760" /><polygon points="680,760 696,700 712,760" /><polygon points="720,760 736,700 752,760" /><polygon points="760,760 776,700 792,760" /><polygon points="800,760 816,700 832,760" /><polygon points="840,760 856,700 872,760" /><polygon points="880,760 896,700 912,760" /><polygon points="920,760 936,700 952,760" /><polygon points="960,760 976,700 992,760" />
+      </g>
+      <g fill="#174531" opacity="0.9">
+        <polygon points="20,810 38,740 56,810" /><polygon points="70,810 88,740 106,810" /><polygon points="120,810 138,740 156,810" /><polygon points="170,810 188,740 206,810" /><polygon points="220,810 238,740 256,810" /><polygon points="270,810 288,740 306,810" /><polygon points="320,810 338,740 356,810" /><polygon points="370,810 388,740 406,810" /><polygon points="420,810 438,740 456,810" /><polygon points="470,810 488,740 506,810" /><polygon points="520,810 538,740 556,810" /><polygon points="570,810 588,740 606,810" /><polygon points="620,810 638,740 656,810" /><polygon points="670,810 688,740 706,810" /><polygon points="720,810 738,740 756,810" /><polygon points="770,810 788,740 806,810" /><polygon points="820,810 838,740 856,810" /><polygon points="870,810 888,740 906,810" /><polygon points="920,810 938,740 956,810" /><polygon points="970,810 988,740 1006,810" />
+      </g>
+    </g>
+
+    <!-- River -->
+    <path d="M 520 760
+             C 460 740, 360 740, 320 800
+             C 280 860, 360 880, 460 880
+             C 560 880, 640 860, 680 820
+             C 720 780, 700 740, 620 720
+             C 560 700, 520 660, 520 620
+             C 520 580, 620 540, 700 520
+             C 780 500, 860 500, 920 520
+             L 920 560
+             C 840 540, 760 540, 700 560
+             C 620 580, 560 620, 560 660
+             C 560 700, 620 740, 660 760
+             C 700 780, 660 820, 520 820
+             C 380 820, 340 780, 380 760
+             C 420 740, 480 740, 520 760 Z"
+          fill="url(#riverGrad)" stroke="#a9dbe6" stroke-width="4" opacity="0.95"/>
+
+    <!-- Monogram "W" (smaller) with elongated Y-like arms -->
+    <g id="monogram" transform="translate(0,-40)">
+      <!-- left arm -->
+      <path d="M 410 620
+               C 380 540, 370 460, 390 390
+               C 400 360, 430 330, 470 320"
+            fill="none" stroke="#bfe6ef" stroke-width="18" stroke-linecap="round"/>
+      <!-- right arm -->
+      <path d="M 614 620
+               C 644 540, 654 460, 634 390
+               C 624 360, 594 330, 554 320"
+            fill="none" stroke="#bfe6ef" stroke-width="18" stroke-linecap="round"/>
+      <!-- small center W -->
+      <path d="M 460 560 L 486 616 L 512 540 L 538 616 L 564 560"
+            fill="none" stroke="#bfe6ef" stroke-width="18" stroke-linecap="round" />
+      <!-- decorative water pattern inside thicker outline -->
+      <g opacity="0.6">
+        <path d="M 410 620
+                 C 380 540, 370 460, 390 390
+                 C 400 360, 430 330, 470 320"
+              fill="none" stroke="url(#waterPattern)" stroke-width="12" stroke-linecap="round"/>
+        <path d="M 614 620
+                 C 644 540, 654 460, 634 390
+                 C 624 360, 594 330, 554 320"
+              fill="none" stroke="url(#waterPattern)" stroke-width="12" stroke-linecap="round"/>
+        <path d="M 460 560 L 486 616 L 512 540 L 538 616 L 564 560"
+              fill="none" stroke="url(#waterPattern)" stroke-width="10" stroke-linecap="round" />
+      </g>
+    </g>
+
+    <!-- Bottom ribbon -->
+    <g id="ribbon" transform="translate(0,0)">
+      <path d="M160,840
+               Q 210,780 300,770
+               L 724,770
+               Q 814,780 864,840
+               Q 840,900 780,930
+               L 244,930
+               Q 184,900 160,840 Z"
+            fill="white" stroke="#dbeadf" stroke-width="6" filter="url(#softShadow)"/>
+
+      <!-- Leaves -->
+      <g fill="#2b8a4b">
+        <path d="M205,865 C235,845 235,885 205,905 C185,890 185,880 205,865 Z"/>
+        <path d="M819,905 C789,885 789,845 819,865 C839,880 839,890 819,905 Z"/>
+      </g>
+
+      <!-- Curved text -->
+      <text font-family="system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif"
+            font-size="90" font-weight="700" fill="url(#badgeRing)" letter-spacing="2">
+        <textPath href="#text-arc" startOffset="50%" text-anchor="middle">Wildyoyu</textPath>
+      </text>
+    </g>
+  </g>
 </svg>

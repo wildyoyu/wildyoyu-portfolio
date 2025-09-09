@@ -6,7 +6,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "optimize": "node tools/optimize-images.mjs RAW public/photos"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.6",
@@ -14,5 +14,9 @@
     "@studio-freight/lenis": "^1.0.42",
     "astro": "^5.13.7",
     "gsap": "^3.13.0"
+  },
+  "devDependencies": {
+    "@astrojs/sitemap": "^3.5.1",
+    "sharp": "^0.34.3"
   }
 }
