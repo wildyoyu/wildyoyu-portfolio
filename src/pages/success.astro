@@ -2,11 +2,16 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 <BaseLayout title="¡Gracias! — Wildyoyu" description="Mensaje enviado correctamente.">
-  <section class="section center">
-    <div class="container" style="text-align:center; max-width:700px;">
+  <section class="section">
+    <div class="container" style="max-width: 720px; text-align:center;">
       <h1 class="h1" style="margin:0 0 .6rem 0;">¡Mensaje enviado! ✅</h1>
-      <p class="lead">Gracias por escribirme. Te responderé cuanto antes.</p>
-      <p><a href="/" style="text-decoration:underline;">Volver al inicio</a></p>
+      <p class="lead" style="margin:0 0 1rem 0;">
+        Gracias por escribirme. Te responderé cuanto antes.
+      </p>
+      <p>
+        <a href="/gallery" class="btn btn-outline" style="margin-right:8px;">Ver galería</a>
+        <a href="/" class="btn btn-primary">Volver al inicio</a>
+      </p>
     </div>
   </section>
 </BaseLayout>
