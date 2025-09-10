@@ -1,22 +1,22 @@
 ---
 import '/src/styles/global.css';
+import NavBar from '../components/NavBar.astro';
 import Lightbox from '../components/Lightbox.astro';
+import Footer from '../components/Footer.astro';
 
 const {
   title = 'wildyoyu — Macro & Wildlife',
   description = 'Portfolio de fotografía macro, naturaleza y wildlife',
-  ogImage = '/og.webp',        // puedes cambiarlo por otra imagen en páginas internas
+  ogImage = '/og.webp',
   noindex = false,
   lang = 'es'
 } = Astro.props;
 
-// Construimos URLs absolutas para OG/Twitter/canonical
-const site = Astro.site; // definido en astro.config.mjs
+const site = Astro.site;
 const pathname = Astro.url?.pathname ?? '/';
 const canonical = site ? new URL(pathname, site).href : undefined;
 const ogAbs = site ? new URL(ogImage, site).href : ogImage;
 
-// JSON-LD mínimo (WebSite)
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
@@ -31,47 +31,31 @@ const jsonLd = {
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="description" content={description} />
     <title>{title}</title>
-
-    <!-- Canonical -->
     {canonical && <link rel="canonical" href={canonical} />}
-
-    <!-- Favicon -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-
-    <!-- Theme color (mejora tintado en móviles) -->
     <meta name="theme-color" content="#0b0d10" />
-
-    <!-- Robots (noindex opcional por página) -->
     {noindex && <meta name="robots" content="noindex,nofollow" />}
-
-    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     {canonical && <meta property="og:url" content={canonical} />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogAbs} />
     <meta property="og:image:alt" content={description} />
-
-    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogAbs} />
-
-    <!-- JSON-LD -->
-    <script type="application/ld+json">
-      {JSON.stringify(jsonLd)}
-    </script>
-
+    <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
     <meta name="color-scheme" content="dark light" />
   </head>
   <body class="min-h-screen">
+    <NavBar />
     <slot />
+    <Footer />
 
-    <!-- Lightbox global -->
     <Lightbox />
 
-    <!-- Fallback de scroll (solo si el navegador no soporta CSS scroll-driven) -->
+    <!-- Fallback scroll (si no hay soporte nativo) -->
     <script type="module">
       import '../scripts/scroll-fallback.ts';
     </script>
