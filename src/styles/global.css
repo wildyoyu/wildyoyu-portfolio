@@ -1,37 +1,43 @@
+/* Fuentes variables autoalojadas */
 @import "@fontsource-variable/inter/index.css";
 @import "@fontsource-variable/newsreader/index.css";
 
-html { font-family: InterVariable, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-.h1  { font-family: "Newsreader Variable", InterVariable, serif; font-variation-settings: "opsz" 32; }
-
-
-/* Reset razonable */
+/* Reset & base */
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 img, picture, video, canvas { display:block; max-width:100%; }
 
 :root{
-  --bg: #0b0d10;
+  --bg: #0a1914;   /* verde oscuro, sin imágenes */
   --fg: #e8ecef;
   --muted: #9aa4ad;
   --accent: #89c2ff;
-  --maxw: 1200px;
-  --radius: 18px;
-  --shadow: 0 10px 30px rgba(0,0,0,.25);
+  --maxw: 1200px; --radius: 18px; --shadow: 0 10px 30px rgba(0,0,0,.25);
   --title: clamp(2rem, 6vw, 4.5rem);
   --lead: clamp(1rem, 2.2vw, 1.25rem);
 }
+html { background: var(--bg); color: var(--fg); }
+/* --- Scroll sólido y suave en todo el sitio --- */
+:root { --nav-h: 60px; }              /* altura aprox. de tu navbar */
+html{
+  scroll-behavior: smooth;             /* anclas suaves */
+  scroll-padding-top: calc(var(--nav-h) + 12px); /* que no tape el navbar */
+  overflow-y: auto;                     /* asegura barra vertical siempre */
+}
+body{
+  min-height: 100dvh;
+  overscroll-behavior-y: contain;       /* evita “rebote”/arrastre accidental */
+}
+
 
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
 
-html {
-  color-scheme: dark;
-  background: var(--bg);
-  color: var(--fg);
-  font: 400 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+html { color-scheme: dark; background: var(--bg); color: var(--fg);
+  font: 400 16px/1.6 InterVariable, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
+.h1 { font-family: "Newsreader Variable", InterVariable, serif; font-variation-settings:"opsz" 32; }
 a { color: var(--fg); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
@@ -40,56 +46,80 @@ a:hover { text-decoration: underline; }
 .center { display:grid; place-items:center; }
 .shadow { box-shadow: var(--shadow); border-radius: var(--radius); }
 
-/* --- Scroll-driven CSS (nativo) con fallback JS --- */
-.hero-visual {
-  view-timeline-name: --hero;
-  view-timeline-axis: block;
-  animation-timeline: --hero;
-  animation-name: hero-zoom;
-  animation-range: entry 0% cover 60%;
-  animation-fill-mode: both;
-  will-change: transform, opacity;
+/* --- Scroll-driven CSS (nativo) --- */
+.hero-visual{
+  view-timeline-name: --hero; view-timeline-axis: block;
+  animation-timeline: --hero; animation-name: hero-zoom;
+  animation-range: entry 0% cover 150%; animation-fill-mode: both;
   transform-origin: center center;
 }
-
-@keyframes hero-zoom {
-  from { transform: scale(0.92) translateY(8vh); opacity: 0.75; }
-  to   { transform: scale(1.12) translateY(-4vh); opacity: 1; }
+@keyframes hero-zoom{
+  from { transform: scale(0.90) translateY(10vh); opacity: .72; }
+  to   { transform: scale(1.30) translateY(-6vh); opacity: 1; }
 }
 
-/* Pinned/sticky tipo Apple */
+/* Sticky wrapper tipo Apple */
 .sticky-wrap { position: relative; height: 200svh; }
 .sticky { position: sticky; top: 0; height: 100svh; display:grid; place-items:center; }
 
 /* Parallax por tarjeta */
-.parallax-card {
-  view-timeline-name: --card;
-  view-timeline-axis: block;
-  animation-timeline: --card;
-  animation-name: parallax-rise;
-  animation-range: entry 0% cover 80%;
-  animation-fill-mode: both;
-  will-change: transform, opacity;
-  transform: translateY(6vh) scale(0.98);
-  opacity: 0.7;
-  overflow: clip;
-  border-radius: var(--radius);
+.parallax-card{
+  view-timeline-name: --card; view-timeline-axis: block;
+  animation-timeline: --card; animation-name: parallax-rise;
+  animation-range: entry 0% cover 80%; animation-fill-mode: both;
+  transform: translateY(12vh) scale(0.96); opacity: .68;
+  overflow: clip; border-radius: var(--radius);
   background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
   outline: 1px solid rgba(255,255,255,.06);
 }
-
-@keyframes parallax-rise {
-  to { transform: translateY(-3vh) scale(1.02); opacity: 1; }
+@keyframes parallax-rise{
+  to { transform: translateY(-6vh) scale(1.06); opacity: 1; }
 }
 
-/* Títulos */
-.h1 { font-size: var(--title); line-height: .95; letter-spacing: -0.02em; }
-.lead { font-size: var(--lead); color: var(--muted); max-width: 70ch; }
+/* --- Botones reutilizables --- */
+.btn{
+  display:inline-flex; align-items:center; gap:10px;
+  padding: .85rem 1.2rem; border-radius: 999px;
+  font-weight: 800; letter-spacing:.2px; text-decoration:none;
+  border:1px solid rgba(255,255,255,.14);
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease, color .15s ease;
+  box-shadow: 0 6px 18px rgba(0,0,0,.18);
+  will-change: transform;
+}
+.btn:focus-visible{ outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 60%, transparent); }
 
-/* Placeholder visual (sustituirás por tus fotos) */
-.ph {
-  background:
-    radial-gradient(100% 80% at 20% 10%, rgba(137,194,255,.35), transparent 40%),
-    radial-gradient(100% 80% at 80% 90%, rgba(120,255,184,.25), transparent 40%),
-    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+.btn-primary{
+  background: var(--fg);
+  color: var(--bg);
+  border-color: transparent;
+}
+.btn-primary:hover{ transform: translateY(-1px); }
+.btn-primary:active{ transform: translateY(0); box-shadow: none; }
+
+.btn-outline{
+  background: transparent;
+  color: var(--fg);
+  border-color: rgba(255,255,255,.32);
+}
+.btn-outline:hover{
+  background: color-mix(in oklab, var(--fg) 10%, transparent);
+  transform: translateY(-1px);
+}
+
+.btn-xl{ padding: 1rem 1.3rem; font-size: clamp(1rem, 2.2vw, 1.1rem); }
+
+.btn .i{ width: 1.15em; height: 1.15em; }
+.cta-wrap{ margin-top: 1.2rem; display:flex; justify-content:center; }
+/* Iconos en botones: tamaño relativo al texto */
+.btn svg, .btn .i { width: 1.05em; height: 1.05em; flex-shrink: 0; }
+
+/* Botón pequeño para redes */
+.btn-sm { padding: .6rem .9rem; font-weight: 700; font-size: .95rem; }
+.ig-grid{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  /* Suaviza las transformaciones con aceleración */
+.parallax-card, .hero-visual { will-change: transform; }
+
 }

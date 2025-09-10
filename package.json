@@ -6,6 +6,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "validate:photos": "node tools/validate-photos.mjs",
+    "fix:photos": "node tools/validate-photos.mjs --write",
     "optimize": "node tools/optimize-images.mjs RAW public/photos"
   },
   "dependencies": {
@@ -15,8 +17,10 @@
     "astro": "^5.13.7",
     "gsap": "^3.13.0"
   },
+
   "devDependencies": {
     "@astrojs/sitemap": "^3.5.1",
     "sharp": "^0.34.3"
   }
+  
 }

@@ -1,10 +1,4 @@
 ---
-/**
- * PinnedStory — Sección sticky tipo Apple
- * - Imagen fija que escala con el scroll (CSS scroll-driven).
- * - Bloques de texto que se "encienden" por turnos mientras avanzas.
- * - Si el navegador no soporta scroll-driven, tendrás fallback con GSAP (lo añadimos en el paso 7.3).
- */
 const steps = [
   { title: "El detalle importa", text: "Microtexturas, escamas, ojos compuestos: donde empieza la historia." },
   { title: "Luz y paciencia",   text: "Esperar el gesto justo. Control de reflejos y profundidad mínima." },
@@ -14,19 +8,9 @@ const steps = [
 <section class="sticky-wrap" aria-label="Historia visual">
   <div class="sticky">
     <div class="container pin-grid">
-      <!-- Imagen fijada que escala -->
       <figure class="pin-visual shadow">
-        <!-- Puedes cambiar a otra imagen: /photos/pinned.webp -->
-        <img
-          src="/photos/hero.webp"
-          alt="Secuencia principal de la historia visual"
-          width="2560"
-          height="1440"
-          loading="eager"
-        />
+        <img src="/photos/hero.webp" alt="Secuencia principal de la historia visual" width="2560" height="1440" loading="eager" />
       </figure>
-
-      <!-- Texto que cambia por pasos -->
       <div class="pin-steps">
         {steps.map((s, i) => (
           <article class="pin-step" style={`--i:${i}`}>
@@ -39,54 +23,22 @@ const steps = [
   </div>
 
   <style>
-    /* Grid responsive para imagen + texto */
-    .pin-grid {
-      display:grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap: clamp(18px,3vw,36px);
-      align-items:center;
-    }
-    @media (max-width: 900px){ .pin-grid { grid-template-columns: 1fr; } }
+    .pin-grid { display:grid; grid-template-columns: 1.1fr .9fr; gap: clamp(18px,3vw,36px); align-items:center; }
+    @media (max-width:900px){ .pin-grid { grid-template-columns:1fr; } }
 
-    /* Imagen que escala con el scroll */
     .pin-visual {
-      view-timeline-name: --pin;
-      view-timeline-axis: block;
-      animation-timeline: --pin;
-      animation-name: pin-zoom;
-      animation-range: entry 0% cover 80%;
-      animation-fill-mode: both;
-      overflow: clip;
-      border-radius: var(--radius);
+      view-timeline-name: --pin; view-timeline-axis:block; animation-timeline: --pin; animation-name: pin-zoom;
+      animation-range: entry 0% cover 80%; animation-fill-mode: both; overflow: clip; border-radius: var(--radius);
     }
     .pin-visual img { display:block; width:100%; height:auto; transform-origin:center; }
+    @keyframes pin-zoom { from { transform: scale(0.92); opacity:.92; } to { transform: scale(1.12); opacity:1; } }
 
-    @keyframes pin-zoom {
-      from { transform: scale(0.92); opacity:.92; }
-      to   { transform: scale(1.12); opacity:1; }
-    }
-
-    /* Pasos de texto: cada uno se enciende en su tramo */
     .pin-steps { display:flex; flex-direction:column; gap: clamp(18px,2.2vw,28px); }
     .pin-step {
-      view-timeline-name: --pin;
-      view-timeline-axis: block;
-      animation-timeline: --pin;
-      animation-name: fade-in-out;
-      animation-fill-mode: both;
-
-      /* Tres pasos → cada uno ocupa ~un tercio del recorrido */
-      animation-range: entry calc(var(--i,0)*33%) cover calc((var(--i,0)+1)*33%);
-      opacity:.25;
+      view-timeline-name: --pin; view-timeline-axis:block; animation-timeline: --pin; animation-name: fade-in-out; animation-fill-mode: both;
+      animation-range: entry calc(var(--i,0)*33%) cover calc((var(--i,0)+1)*33%); opacity:.25;
     }
-
-    @keyframes fade-in-out {
-      0%   { opacity:.15; transform: translateY(8px); }
-      35%  { opacity:1;   transform: translateY(0); }
-      65%  { opacity:1;   transform: translateY(0); }
-      100% { opacity:.15; transform: translateY(-8px); }
-    }
-
-    .pin-title { font-weight: 700; letter-spacing:.2px; }
+    @keyframes fade-in-out { 0%{opacity:.15; transform:translateY(8px);} 35%{opacity:1; transform:translateY(0);} 65%{opacity:1;} 100%{opacity:.15; transform:translateY(-8px);} }
+    .pin-title { font-weight:700; letter-spacing:.2px; }
   </style>
 </section>

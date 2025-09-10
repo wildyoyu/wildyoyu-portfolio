@@ -1,45 +1,32 @@
 ---
-/**
- * Galería con tarjetas animadas (parallax-rise).
- * - Cambia los elementos del array `items` por tus fotos y textos.
- * - Requiere que existan los .webp en /public/photos/
- */
 const items = [
-  {
-    title: "Ojo compuesto",
-    alt: "Detalle macro de ojo compuesto de [familia] ([Nombre científico])",
-    src: "/photos/ojo-compuesto.webp",
-    w: 1920,
-    h: 1200
-  },
-  {
-    title: "Gota sobre hoja",
-    alt: "Gota de agua sobre hoja — macro con profundidad mínima",
-    src: "/photos/gota-hoja.webp",
-    w: 1920,
-    h: 1200
-  },
-  {
-    title: "Mariposa en vuelo",
-    alt: "Mariposa a contraluz en su entorno natural",
-    src: "/photos/mariposa.webp",
-    w: 1920,
-    h: 1200
-  }
+  { title: "Ojo compuesto", alt: "Detalle macro de ojo compuesto de [familia] ([Nombre científico])", src: "/photos/ojo-compuesto.webp", w:1920, h:1200 },
+  { title: "Gota sobre hoja", alt: "Gota de agua sobre hoja — macro con profundidad mínima", src: "/photos/gota-hoja.webp", w:1920, h:1200 },
+  { title: "Mariposa en vuelo", alt: "Mariposa a contraluz en su entorno natural", src: "/photos/mariposa.webp", w:1920, h:1200 },
 ];
 ---
 <section class="section" aria-label="Galería destacada">
   <div class="container" style="display:grid; gap: clamp(18px, 2vw, 28px);">
     {items.map((it) => (
       <article class="parallax-card shadow" role="figure" aria-label={it.alt} style="padding: clamp(10px,1.5vw,16px);">
-        <img
-          src={it.src}
-          alt={it.alt}
-          loading="lazy"
-          width={it.w}
-          height={it.h}
-          style="border-radius: calc(var(--radius) - 6px); aspect-ratio: 16/10; object-fit: cover; display:block; width:100%; height:auto;"
-        />
+        <button
+          class="lb-trigger"
+          type="button"
+          aria-label={`Abrir ${it.title} a pantalla completa`}
+          data-src={it.src}
+          data-alt={it.alt}
+          data-title={it.title}
+          style="display:block; width:100%; padding:0; margin:0; border:0; background:none; cursor:zoom-in;"
+        >
+          <img
+            src={it.src}
+            alt={it.alt}
+            loading="lazy"
+            width={it.w}
+            height={it.h}
+            style="border-radius: calc(var(--radius) - 6px); aspect-ratio: 16/10; object-fit: cover; display:block; width:100%; height:auto;"
+          />
+        </button>
         <header style="padding: .8rem 1rem 1.2rem 1rem;">
           <h3 style="margin:0; font-weight:600; letter-spacing:.2px">{it.title}</h3>
         </header>

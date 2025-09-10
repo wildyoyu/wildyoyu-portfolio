@@ -1,38 +1,87 @@
 [
   {
-    "title": "Antennaedited",
+    "title": "Antenna",
     "alt": "",
-    "src": "/photos/antennaedited.webp",
+    "src": "/photos/antenna.webp",
     "w": 1920,
     "h": 2560
+  },
+  {
+    "title": "Flower1",
+    "alt": "",
+    "src": "/photos/flower1.webp",
+    "w": 1920,
+    "h": 1440
+  },
+  {
+    "title": "Flower2",
+    "alt": "",
+    "src": "/photos/flower2.webp",
+    "w": 1920,
+    "h": 2561
+  },
+  {
+    "title": "Grasshopper",
+    "alt": "",
+    "src": "/photos/grasshopper.webp",
+    "w": 1920,
+    "h": 2560
+  },
+  {
+    "title": "Ice",
+    "alt": "",
+    "src": "/photos/ice.webp",
+    "w": 1200,
+    "h": 1600
+  },
+  {
+    "title": "Milkyway1",
+    "alt": "",
+    "src": "/photos/milkyway1.webp",
+    "w": 1920,
+    "h": 1080
+  },
+  {
+    "title": "Milkyway2",
+    "alt": "",
+    "src": "/photos/milkyway2.webp",
+    "w": 1920,
+    "h": 1080
+  },
+  {
+    "title": "Milkyway3",
+    "alt": "",
+    "src": "/photos/milkyway3.webp",
+    "w": 1920,
+    "h": 3413
+  },
+  {
+    "title": "Milyway4",
+    "alt": "",
+    "src": "/photos/milyway4.webp",
+    "w": 1920,
+    "h": 2560
+  },
+  {
+    "title": "Mocespider1",
+    "alt": "",
+    "src": "/photos/mocespider1.webp",
+    "w": 1440,
+    "h": 1080
+  },
+  {
+    "title": "Mocespider2",
+    "alt": "",
+    "src": "/photos/mocespider2.webp",
+    "w": 1440,
+    "h": 1080
   },
   {
     "title": "Moon",
     "alt": "",
     "src": "/photos/moon.webp",
     "w": 1920,
-    "h": 1440
-  },
-  {
-    "title": "P9070001",
-    "alt": "",
-    "src": "/photos/p9070001.webp",
-    "w": 1920,
-    "h": 1440
-  },
-  {
-    "title": "P9070002",
-    "alt": "",
-    "src": "/photos/p9070002.webp",
-    "w": 1920,
-    "h": 2560
-  },
-  {
-    "title": "P9080003",
-    "alt": "",
-    "src": "/photos/p9080003.webp",
-    "w": 1920,
-    "h": 2560
+    "h": 3413
   },
   {
     "title": "P9080004",
@@ -42,9 +91,9 @@
     "h": 2560
   },
   {
-    "title": "P9080005",
+    "title": "Sunset082025",
     "alt": "",
-    "src": "/photos/p9080005.webp",
+    "src": "/photos/sunset082025.webp",
     "w": 1920,
     "h": 2560
   }

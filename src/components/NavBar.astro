@@ -1,0 +1,24 @@
+---
+const pathname = Astro.url?.pathname ?? '/';
+const isActive = (href: string) => (pathname === href || pathname.startsWith(href + '/'));
+---
+<header class="site-nav">
+  <div class="container nav-row">
+    <a href="/" class="brand">wildyoyu</a>
+    <nav class="links" aria-label="Principal">
+      <a href="/" aria-current={pathname === '/' ? 'page' : undefined}>Inicio</a>
+      <a href="/gallery" aria-current={isActive('/gallery') ? 'page' : undefined}>Galería</a>
+      <a href="/contact" aria-current={isActive('/contact') ? 'page' : undefined}>Contacto</a>
+    </nav>
+  </div>
+  <style>
+    .site-nav{ position: sticky; top: 0; z-index: 50; backdrop-filter: blur(8px);
+      background: color-mix(in oklab, var(--bg) 82%, transparent);
+      border-bottom: 1px solid rgba(255,255,255,.06); }
+    .nav-row{ display:flex; align-items:center; justify-content:space-between; height: 60px; }
+    .brand{ font-weight: 800; letter-spacing:.3px; text-transform: lowercase; }
+    .links{ display:flex; gap: clamp(12px,2vw,20px); }
+    .links a{ opacity:.85; font-weight:600; }
+    .links a[aria-current="page"]{ opacity:1; text-decoration: underline; text-underline-offset: 6px; }
+  </style>
+</header>

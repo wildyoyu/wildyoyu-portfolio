@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export function getStaticPaths() {
+  return ['wildlife','macro','night'].map((category) => ({ params: { category } }));
+}
+
+const { category } = Astro.params;
+const meta = {
+  wildlife: { title: 'Wildlife', desc: 'Fauna en su entorno.' },
+  macro:    { title: 'Macro space', desc: 'Texturas y detalle.' },
+  night:    { title: 'Night moments', desc: 'Nocturnas y baja luz.' },
+}[category];
+---
+<BaseLayout title={`${meta.title} — Wildyoyu`} description={meta.desc}>
+  <section class="section">
+    <div class="container">
+      <h1 class="h1">{meta.title}</h1>
+      <p class="lead">{meta.desc}</p>
+      <p class="lead">Usa mejor <a href="/gallery#${category}" style="text-decoration:underline;">/gallery#${category}</a> para ver todas las fotos con pestañas.</p>
+    </div>
+  </section>
+</BaseLayout>

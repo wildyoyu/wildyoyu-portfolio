@@ -1,0 +1,43 @@
+---
+/** Ajusta tus URLs si tus @ no son "wildyoyu" */
+const instagramUrl = 'https://instagram.com/wildyoyu';
+const tiktokUrl    = 'https://www.tiktok.com/@wildyoyu_';
+---
+<footer class="site-footer">
+  <div class="container foot">
+    <p>© {new Date().getFullYear()} wildyoyu · Macro & Wildlife</p>
+
+    <nav class="links">
+      <a href="/gallery">Galería</a>
+      <span>·</span>
+      <a href="/contact">Contacto</a>
+      <span>·</span>
+      <a href="/equipo" title="Mi equipo de trabajo">Mi equipo</a>
+      <span>·</span>
+      <a href={instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+        <!-- icono Instagram -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.6"/>
+          <circle cx="12" cy="12" r="3.6" stroke="currentColor" stroke-width="1.6"/>
+          <circle cx="17.3" cy="6.7" r="1.1" fill="currentColor"/>
+        </svg>
+        <span class="sr">Instagram</span>
+      </a>
+      <a href={tiktokUrl} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+        <!-- icono TikTok -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M14.5 3c.5 2.3 1.9 3.9 4.3 4.3v3.1c-1.7-.1-3.2-.7-4.3-1.6v5.7a6.6 6.6 0 11-6.6-6.6c.6 0 1.2.1 1.8.3v3.2a3.5 3.5 0 00-1.8-.5 3.4 3.4 0 103.4 3.4V3h3.2Z"/>
+        </svg>
+        <span class="sr">TikTok</span>
+      </a>
+    </nav>
+  </div>
+
+  <style>
+    .site-footer{
+      border-top:1px solid rgba(255,255,255,.06);
+      padding-block: 28px; margin-top: 40px;
+    }
+    .foot{
+      display:flex; justify-content:space-between; align-items:center; gap:12px;
+      flex-wrap: wrap;

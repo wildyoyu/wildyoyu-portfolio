@@ -1,0 +1,12 @@
+---
+title: "Libélula al amanecer"
+src: "/photos/mocespider1.webp"
+srcs: ["/photos/mocespider2.webp"]
+alt: "Sympetrum fonscolombii al amanecer, posada sobre un junco"
+w: 2560
+h: 1440
+date: 2025-09-01
+category: wildlife
+tags: ["libélula", "odonata", "amanecer"]
+featured: true
+---

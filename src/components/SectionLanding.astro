@@ -1,0 +1,97 @@
+---
+import { getCollection } from 'astro:content';
+
+const all = await getCollection('shots');
+const byCat = (cat) =>
+  all
+    .filter((e) => (e.data.category || '').toLowerCase() === cat)
+    .sort((a, b) => {
+      const da = a.data.date ? new Date(a.data.date).getTime() : 0;
+      const db = b.data.date ? new Date(b.data.date).getTime() : 0;
+      return db - da;
+    })
+    .slice(0, 9)
+    .map((e) => ({ src: e.data.src, alt: e.data.alt, w: e.data.w, h: e.data.h }));
+
+const sections = [
+  { id: 'wildlife', title: 'Wildlife',      accent: '#71ffb2', href: '/gallery#wildlife', images: byCat('wildlife') },
+  { id: 'macro',    title: 'Macro space',   accent: '#89c2ff', href: '/gallery#macro',    images: byCat('macro') },
+  { id: 'night',    title: 'Night moments', accent: '#ffd479', href: '/gallery#night',    images: byCat('night') },
+];
+---
+<section class="sections">
+  <div class="container grid3">
+    {sections.map((s) => (
+      <a class="card" id={s.id} href={s.href} style={`--accent:${s.accent}`} aria-label={`Abrir ${s.title}`}>
+        <!-- PREVIEW detrás y centrada -->
+        <div class="preview" aria-hidden="true">
+          <div class="preview-inner">
+            {s.images.map((it) => (
+              <img src={it.src} alt="" loading="lazy" decoding="async" width={it.w} height={it.h} />
+            ))}
+          </div>
+        </div>
+
+        <!-- TÍTULO por delante -->
+        <h2 class="title">{s.title}</h2>
+      </a>
+    ))}
+  </div>
+</section>
+
+<style>
+  .grid3{
+    display:grid; grid-template-columns: repeat(3, 1fr);
+    gap: clamp(16px, 2.4vw, 24px);
+  }
+  @media (max-width: 980px){ .grid3{ grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 680px){ .grid3{ grid-template-columns: 1fr; } }
+
+  .card{
+    position:relative; display:grid; place-items:center; text-decoration:none; color:inherit;
+    min-height: clamp(260px, 36vw, 420px);
+    border-radius: var(--radius);
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    outline: 1px solid rgba(255,255,255,.08);
+    overflow:hidden;
+    isolation: isolate; /* aísla z-index internos */
+  }
+
+  /* Título por delante */
+  .title{
+    position: relative;
+    z-index: 2;
+    font-family: "Newsreader Variable", InterVariable, serif;
+    font-size: clamp(1.8rem, 4.6vw, 3rem);
+    font-weight: 800; letter-spacing:.3px; line-height: 1; text-align:center; margin:0;
+    transition: color .2s ease, text-shadow .2s ease, opacity .2s ease;
+    text-wrap: balance;
+  }
+  .card:hover .title{
+    color: var(--accent);
+    text-shadow: 0 8px 32px color-mix(in oklab, var(--accent) 25%, transparent);
+  }
+
+  /* PREVIEW detrás, centrada */
+  .preview{
+    position:absolute; inset:0; z-index: 1;
+    pointer-events: none; /* no bloquea el click del enlace */
+    display:grid; place-items:center;
+    opacity:.0; transform: scale(.96);
+    transition: opacity .35s ease, transform .35s ease, filter .35s ease;
+    filter: saturate(1.04) contrast(1.03) brightness(.95);
+    will-change: transform, opacity, filter;
+  }
+  .card:hover .preview{ opacity: 1; transform: scale(1); filter: none; }
+
+  .preview-inner{
+    width: min(88%, 720px);
+    display:grid; grid-template-columns: repeat(3, 1fr);
+    gap: clamp(6px,1.4vw,12px);
+  }
+  .preview img{
+    display:block; width:100%; height:auto; aspect-ratio: 4/3; object-fit: cover;
+    border-radius: calc(var(--radius) - 8px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  }
+</style>

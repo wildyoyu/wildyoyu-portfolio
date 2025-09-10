@@ -1,0 +1,21 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const all = await getCollection('shots');
+  return all.map((e) => ({ params: { slug: e.slug }, props: { data: e.data } }));
+}
+
+const { data } = Astro.props;
+---
+<BaseLayout title={`${data.title} — Wildyoyu`} description={data.alt}>
+  <section class="section">
+    <div class="container" style="max-width: 1200px;">
+      <img src={data.src} alt={data.alt} width={data.w} height={data.h} style="width:100%;height:auto;display:block;border-radius:var(--radius);" />
+      <h1 class="h1" style="margin-top:1rem;">{data.title}</h1>
+      {data.tags?.length ? <p class="lead">{data.tags.join(' · ')}</p> : null}
+      <p style="margin-top:1rem;"><a href={`/gallery#${(data.category||'').toLowerCase()}`} style="text-decoration:underline;">← Volver a {data.category}</a></p>
+    </div>
+  </section>
+</BaseLayout>
