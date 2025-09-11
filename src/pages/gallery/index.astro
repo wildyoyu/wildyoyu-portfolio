@@ -52,9 +52,8 @@ const tabs = [
             role="tabpanel"
             aria-labelledby={`tab-${t.id}`}
             data-cat={t.id}
-            data-items={JSON.stringify(
-              t.items.map(it => ({ src: it.src, alt: it.alt, title: it.title, slug: it.slug }))
-            )}
+            data-items={JSON.stringify(t.items)}
+
           >
             {t.items.length === 0 ? (
               <p class="lead">Aún no hay fotos en {t.title.toLowerCase()}.</p>
