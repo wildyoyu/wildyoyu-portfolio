@@ -1,12 +1,11 @@
 ---
 /**
- * Visor vertical 70% ancho:
+ * Visor vertical (70% ancho) con pie de foto blanco:
  * - Ancho: clamp(320px, 70vw, 1180px) · Alto: 90vh
- * - Scroll vertical por categoría (scroll-snap)
- * - Sin flechas; navegación con scroll
- * - Botones por foto: Like ❤ + Compartir ↗ (círculos blancos, centrados)
- * - Likes en localStorage (evento "yoyu:favs-changed")
- * - No auto-abrir por hash de categoría (solo abre si es #cat:slug|idx)
+ * - Navegación vertical entre fotos de la categoría (scroll-snap)
+ * - Pie de foto blanco con título + botones: Like (corazón) y Compartir (flecha)
+ * - Likes locales (localStorage) + evento "yoyu:favs-changed" para refrescar la home
+ * - Solo abre al pulsar miniatura (no al entrar a categoría)
  */
 ---
 <dialog id="sheetviewer" class="sv" aria-label="Visor de imágenes">
@@ -60,46 +59,54 @@
   }
 
   .sv-slide{
-    min-height: calc(90vh - 54px);
+    min-height: calc(90vh - 54px); /* alto total menos cabecera */
     padding: clamp(10px, 2vw, 18px);
     scroll-snap-align: start;
-    display:flex; align-items:center; justify-content:center;
-  }
-
-  /* Contenedor centrado de imagen + botones */
-  .sv-figure{
     display:flex; flex-direction:column; align-items:center; gap:12px;
-    max-width: 100%; width:fit-content;
   }
 
-  /* Modo imagen */
-  .sv.mode-fit   .sv-img{ max-width: 100%; max-height: 72vh; width:auto; height:auto; }
-  .sv.mode-original .sv-figure{ max-height: 100%; overflow:auto; }
-  .sv.mode-original .sv-img{ max-width:none; max-height:none; width:auto; height:auto; }
-
+  /* Imagen: en móvil se ajusta al visor; en desktop mostramos original */
   .sv-img{
     display:block; user-select:none; -webkit-user-drag:none;
     transition: transform .25s ease, opacity .25s ease;
+    max-width: 100%;
+  }
+  @media (max-width: 768px){
+    .sv-img{ max-height: 64vh; width:auto; height:auto; }
+  }
+  @media (min-width: 769px){
+    .sv-img{ max-height: none; max-width: none; width:auto; height:auto; }
   }
 
-  .sv-cap{ opacity:.85; text-align:center; }
-
-  /* Botones circulares centrados bajo la foto */
-  .sv-actions{
-    display:flex; justify-content:center; gap:12px;
-    width:100%; margin-top: 2px;
+  /* Pie de foto blanco (título + botones) */
+  .sv-caption{
+    width: min(92%, 980px);
+    background: #fff;
+    color: #111;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0,0,0,.25);
+    display:flex; align-items:center; gap:10px;
+    padding: 10px 12px;
   }
-  .act{
+  .cap-text{
+    min-width: 0; flex:1; font-weight:700;
+    white-space: nowrap; overflow:hidden; text-overflow: ellipsis;
+  }
+  .cap-actions{ display:flex; gap:8px; }
+
+  /* Botones del caption: redondos, blancos con borde sutil y símbolo */
+  .cap-btn{
     appearance:none; -webkit-appearance:none;
-    padding:0; margin:0; line-height:0;
-    width:52px; height:52px; border-radius:50% !important;
-    border:none; background:#fff; color:#111; cursor:pointer;
-    display:inline-flex; align-items:center; justify-content:center;
-    box-shadow:0 8px 30px rgba(0,0,0,.35);
+    background:#fff; color:#111;
+    border:1px solid #e5e7eb;
+    border-radius: 9999px;
+    width:40px; height:40px; padding:0; line-height:0;
+    display:grid; place-items:center; cursor:pointer;
   }
-  .act svg{ width:24px; height:24px; display:block; }
-  .act-like.liked{ color:#e11d48; } /* corazón rojo cuando está en favoritos */
+  .cap-btn svg{ width:22px; height:22px; display:block; }
+  .cap-like.liked svg{ color:#e11d48; fill:#e11d48; } /* corazón rojo cuando está activo */
 
+  /* Evita animación mientras se arrastra */
   .dragging .sv-img{ transition:none; }
 </style>
 
@@ -114,7 +121,6 @@
     let items = [];    // [{src, alt, title, slug}]
     let current = 0;
     let activeCat = '';
-    let mode = 'fit';
 
     const isMobile = () => matchMedia('(max-width: 768px)').matches;
 
@@ -130,29 +136,23 @@
       window.dispatchEvent(new CustomEvent('yoyu:favs-changed'));
     }
 
-    function applyMode(){
-      dialog.classList.toggle('mode-fit', mode === 'fit');
-      dialog.classList.toggle('mode-original', mode === 'original');
-    }
-
     function slideHTML(it, idx){
       const liked = isLiked(it.slug || '');
+      const title = it.title || it.alt || '';
       return `
         <section class="sv-slide" data-idx="${idx}" data-slug="${it.slug||''}">
-          <div class="sv-figure">
-            <img class="sv-img" src="${it.src}" alt="${it.alt || ''}" />
-            ${it.title ? `<div class="sv-cap">${it.title}</div>` : ''}
-            <div class="sv-actions" role="group" aria-label="Acciones">
-              <!-- LIKE -->
-              <button class="act act-like${liked ? ' liked':''}" type="button" title="${liked ? 'Quitar de favoritos':'Añadir a favoritos'}" aria-label="Like">
+          <img class="sv-img" src="${it.src}" alt="${it.alt || ''}" />
+          <div class="sv-caption">
+            <div class="cap-text" title="${title.replace(/"/g, '&quot;')}">${title}</div>
+            <div class="cap-actions">
+              <button class="cap-btn cap-like${liked ? ' liked':''}" type="button" aria-label="Like" title="${liked ? 'Quitar de favoritos':'Añadir a favoritos'}">
                 <!-- corazón -->
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M12.1 21.35l-1.1-1.02C5.14 14.88 2 12.05 2 8.5 2 6 4 4 6.5 4c1.74 0 3.41.81 4.5 2.09C12.59 4.81 14.26 4 16 4 18.5 4 20.5 6 20.5 8.5c0 3.55-3.14 6.38-8.9 11.83l-.5.47z"/>
                 </svg>
               </button>
-              <!-- COMPARTIR -->
-              <button class="act act-share" type="button" title="Compartir" aria-label="Compartir">
-                <!-- compartir -->
+              <button class="cap-btn cap-share" type="button" aria-label="Compartir" title="Compartir">
+                <!-- flecha compartir -->
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/>
                   <path d="M12 16V3"/>
@@ -167,34 +167,33 @@
 
     function renderSlides(){ reel.innerHTML = items.map(slideHTML).join(''); }
 
-    function slideTop(idx){
-      const headerH = (dialog.querySelector('.sv-top')?.clientHeight || 0);
-      const slideH = sheet.clientHeight - headerH;
-      return idx * slideH;
-    }
+    const headerH = () => (dialog.querySelector('.sv-top')?.clientHeight || 0);
+    const slideH  = () => sheet.clientHeight - headerH();
+    const slideTop= (idx) => idx * slideH();
+
     function scrollToIndex(idx, behavior='instant'){
       current = Math.max(0, Math.min(items.length - 1, idx));
       reel.scrollTo({ top: slideTop(current), behavior });
       updateHash();
-      updateButtonsState();
+      syncLikeState();
     }
+
     function updateCurrentOnScroll(){
-      const headerH = (dialog.querySelector('.sv-top')?.clientHeight || 0);
-      const slideH = sheet.clientHeight - headerH;
-      const idx = Math.round(reel.scrollTop / Math.max(1, slideH));
-      if (idx !== current){ current = idx; updateHash(false); updateButtonsState(); }
+      const idx = Math.round(reel.scrollTop / Math.max(1, slideH()));
+      if (idx !== current){ current = idx; updateHash(false); syncLikeState(); }
     }
-    function updateButtonsState(){
+
+    function syncLikeState(){
       const slide = reel.querySelector(`.sv-slide[data-idx="${current}"]`);
       if (!slide) return;
       const slug = slide.dataset.slug || '';
-      const likeBtn = slide.querySelector('.act-like');
+      const likeBtn = slide.querySelector('.cap-like');
       likeBtn?.classList.toggle('liked', isLiked(slug));
       likeBtn?.setAttribute('title', isLiked(slug) ? 'Quitar de favoritos' : 'Añadir a favoritos');
     }
 
     function openFromTrigger(btn){
-      // Cargar items de la categoría desde el panel
+      // obtiene toda la categoría desde el panel actual
       const panel = btn.closest('.panel');
       if (panel?.dataset.items) {
         try { items = JSON.parse(panel.dataset.items); } catch { items = []; }
@@ -206,8 +205,6 @@
       if (!items.length) return;
 
       const startIdx = Number(btn.dataset.idx ?? 0);
-      mode = isMobile() ? 'fit' : 'original';
-      applyMode();
       renderSlides();
 
       if ('showModal' in dialog) dialog.showModal(); else dialog.setAttribute('open','');
@@ -231,8 +228,6 @@
       }catch{}
     }
 
-    function toggleLike(slug){ /* está arriba */ }
-
     function close(){
       if (dialog.open && 'close' in dialog) dialog.close();
       dialog.removeAttribute('open');
@@ -248,26 +243,17 @@
       else if (location.hash.replace('#','') !== newHash) history.replaceState(null, '', '#' + newHash);
     }
 
-    /* Delegaciones */
+    /* Delegaciones globales */
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('.lb-trigger'); if (!btn) return;
       e.preventDefault(); openFromTrigger(btn);
     });
-    // Long-press estilo 3D Touch
-    let holdTimer=null;
-    document.addEventListener('pointerdown', (e) => {
-      const btn = e.target.closest('.lb-trigger'); if (!btn) return;
-      holdTimer = setTimeout(() => openFromTrigger(btn), 400);
-    });
-    document.addEventListener('pointerup',   () => { if (holdTimer){ clearTimeout(holdTimer); holdTimer=null; } });
-    document.addEventListener('pointercancel',() => { if (holdTimer){ clearTimeout(holdTimer); holdTimer=null; } });
-
-    // Acciones por slide
+    // Acciones del pie de foto
     reel.addEventListener('click', (e) => {
       const slide = e.target.closest('.sv-slide'); if (!slide) return;
       const slug = slide.dataset.slug || '';
-      if (e.target.closest('.act-like')){ toggleLike(slug); updateButtonsState(); return; }
-      if (e.target.closest('.act-share')){ shareCurrent(); return; }
+      if (e.target.closest('.cap-like')){ toggleLike(slug); syncLikeState(); return; }
+      if (e.target.closest('.cap-share')){ shareCurrent(); return; }
     });
 
     reel.addEventListener('scroll', updateCurrentOnScroll, { passive:true });
@@ -286,7 +272,7 @@
       if (e.key.toLowerCase() === 's') shareCurrent();
     });
 
-    // Abrir por hash SOLO si hay slug/índice (no abrir con #cat solo)
+    // Importante: ya NO abrimos el visor solo con #cat; solo con #cat:slug|idx
     function openFromHash(){
       const h = location.hash.replace('#',''); if (!h || !h.includes(':')) return;
       const [cat, rest] = h.split(':'); if (!cat || !rest) return;
@@ -299,8 +285,6 @@
       const idx = items.findIndex(x => x.slug && rest && x.slug === rest);
       const startIdx = idx >= 0 ? idx : Math.max(0, parseInt(rest, 10) || 0);
 
-      mode = isMobile() ? 'fit' : 'original';
-      applyMode();
       renderSlides();
       if ('showModal' in dialog) dialog.showModal(); else dialog.setAttribute('open','');
       document.documentElement.style.overflow = 'hidden';
@@ -310,6 +294,6 @@
 
     dialog.addEventListener('close', () => { document.documentElement.style.overflow=''; });
 
-    console.info('[SheetViewer 70% + botones redondos + likes] listo ✓');
+    console.info('[SheetViewer 70% + caption blanco + like/share] listo ✓');
   }
 </script>
