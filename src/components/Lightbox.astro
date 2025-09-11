@@ -6,6 +6,7 @@
     <div class="lb-top">
       <button class="lb-close" aria-label="Cerrar" title="Cerrar (Esc)">×</button>
       <button class="lb-mode" aria-label="Cambiar tamaño" title="Ajustar / 1:1">1:1</button>
+      <a class="lb-open" href="#" target="_blank" rel="noopener" aria-label="Abrir original" title="Abrir original (↗)">↗</a>
     </div>
 
     <button class="lb-prev" aria-label="Anterior" title="Anterior (←)">‹</button>
@@ -20,73 +21,69 @@
 </dialog>
 
 <style>
-  .lb { inset: 0; border: 0; padding: 0; background: transparent; }
-  .lb[open] { display: grid; place-items: center; }
-  .lb::backdrop { background: rgba(0,0,0,.7); }
-  .lb-backdrop { position: fixed; inset: 0; }
+  .lb { inset:0; border:0; padding:0; background:transparent; }
+  .lb[open]{ display:grid; place-items:center; }
+  .lb::backdrop{ background:rgba(0,0,0,.7); }
+  .lb-backdrop{ position:fixed; inset:0; }
 
   .lb-stage{
-    position: relative;
-    width: min(96vw, 1400px);
-    height: min(92vh, 900px);
-    display: grid;
-    grid-template-columns: 56px 1fr 56px;
-    align-items: center;
-    background: rgba(12,14,16,.85);
-    backdrop-filter: blur(6px);
-    border-radius: 18px;
-    outline: 1px solid rgba(255,255,255,.08);
-    box-shadow: 0 30px 100px rgba(0,0,0,.5);
-    overflow: hidden;
-    touch-action: pan-y;
+    position:relative;
+    width:min(96vw,1400px);
+    height:min(92vh,900px);
+    display:grid; grid-template-columns:56px 1fr 56px; align-items:center;
+    background:rgba(12,14,16,.85); backdrop-filter:blur(6px);
+    border-radius:18px; outline:1px solid rgba(255,255,255,.08);
+    box-shadow:0 30px 100px rgba(0,0,0,.5); overflow:hidden;
+    touch-action:pan-y;
+  }
+  @media (max-width:768px){
+    .lb-stage{ width:100vw; height:100dvh; border-radius:0; }
   }
 
-  .lb-top{ position:absolute; inset: 10px 10px auto auto; z-index:3; display:flex; gap:8px; }
-  .lb-close, .lb-mode{
-    width: 42px; height: 42px; border-radius: 999px;
-    border: 1px solid rgba(255,255,255,.2);
-    background: rgba(0,0,0,.35);
-    color: #fff; font-size: 16px; line-height: 1; cursor: pointer;
-    display: grid; place-items: center; backdrop-filter: blur(6px);
+  .lb-top{ position:absolute; inset:10px 10px auto auto; z-index:3; display:flex; gap:8px; }
+  .lb-close,.lb-mode,.lb-open{
+    width:42px; height:42px; border-radius:999px;
+    border:1px solid rgba(255,255,255,.2);
+    background:rgba(0,0,0,.35); color:#fff; font-size:16px;
+    display:grid; place-items:center; cursor:pointer; text-decoration:none;
+    backdrop-filter:blur(6px);
   }
 
   .lb-figure{
-    grid-column: 2; margin: 0; height: 100%;
-    display: grid; grid-template-rows: 1fr auto;
-    align-items: center; gap: 8px;
-    padding: clamp(8px, 1.4vw, 14px);
-    overflow: auto; /* Modo 1:1 permite scroll */
+    grid-column:2; margin:0; height:100%;
+    display:grid; grid-template-rows:1fr auto; align-items:center; gap:8px;
+    padding:clamp(8px,1.4vw,14px);
+    overflow:auto;                      /* 1:1 permite scroll */
+    overscroll-behavior:contain;
   }
 
-  /* MODO 1:1 (original) */
+  /* Modo 1:1 (original) — sin límites */
   .lb.mode-original #lb-img{ width:auto; height:auto; max-width:none; max-height:none; }
 
-  /* MODO AJUSTAR */
+  /* Modo Ajustar — contenido encaja en visor; sin scroll en figure */
   .lb.mode-fit .lb-figure{ overflow:hidden; }
   .lb.mode-fit #lb-img{ max-width:100%; max-height:100%; }
 
   #lb-img{
-    justify-self:center;
+    justify-self:center; display:block;
     user-select:none; -webkit-user-drag:none;
-    transition: transform .25s ease, opacity .25s ease;
-    will-change: transform; display:block;
+    transition:transform .25s ease, opacity .25s ease; will-change:transform;
   }
   #lb-cap{ opacity:.85; text-align:center; min-height:1.2em; }
 
-  .lb-prev, .lb-next{
+  .lb-prev,.lb-next{
     position:absolute; top:50%; transform:translateY(-50%);
     width:42px; height:42px; border-radius:999px;
     border:1px solid rgba(255,255,255,.2);
-    background: rgba(0,0,0,.35);
-    color:#fff; font-size:22px; line-height:1; cursor:pointer;
-    display:grid; place-items:center; backdrop-filter: blur(6px); z-index:2;
+    background:rgba(0,0,0,.35); color:#fff; font-size:22px;
+    display:grid; place-items:center; cursor:pointer; z-index:2;
+    backdrop-filter:blur(6px);
   }
   .lb-prev{ left:10px; } .lb-next{ right:10px; }
   .dragging #lb-img{ transition:none; }
 </style>
 
 <script is:inline>
-  // is:inline evita que Astro suba este script al <head>
   const dialog  = document.getElementById('lightbox');
   if (!dialog) { console.warn('[Lightbox] No se encontró el dialog.'); }
   else {
@@ -98,11 +95,15 @@
     const nextBtn = dialog.querySelector('.lb-next');
     const closeBtn= dialog.querySelector('.lb-close');
     const modeBtn = dialog.querySelector('.lb-mode');
+    const openA   = dialog.querySelector('.lb-open');
 
     let items = [];      // [{src,alt,title}]
     let current = 0;
     let lastTrigger = null;
     let mode = 'original'; // 'original' | 'fit'
+    let lastTap = 0;
+
+    const isMobile = () => matchMedia('(max-width: 768px)').matches;
 
     function applyMode(){
       dialog.classList.toggle('mode-original', mode === 'original');
@@ -111,12 +112,16 @@
       modeBtn.title = (mode === 'original') ? 'Mostrando tamaño original' : 'Ajustado a visor';
     }
     function toggleMode(){ mode = (mode === 'original') ? 'fit' : 'original'; applyMode(); }
+
     modeBtn?.addEventListener('click', toggleMode);
 
     function show(idx, opts = { animateFrom: 0 }) {
       if (!items.length) return;
       current = (idx + items.length) % items.length;
       const it = items[current];
+
+      // actualizar enlace a original
+      openA.href = it.src;
 
       img.style.transition = 'transform .25s ease, opacity .25s ease';
       if (opts.animateFrom) {
@@ -134,11 +139,13 @@
         cap.textContent = it.alt || it.title || '';
         img.style.transform = 'translateX(0)'; img.style.opacity = 1;
       }
+
       if (items.length > 1) { const pre = new Image(); pre.decoding="async"; pre.src = items[(current+1)%items.length].src; }
     }
 
     function openFromTrigger(btn) {
       lastTrigger = btn;
+
       const listAttr = btn.dataset.srcs;
       if (listAttr) {
         try { const arr = JSON.parse(listAttr); items = arr.map(s => ({ src:s, alt:btn.dataset.alt||'', title:btn.dataset.title||'' })); }
@@ -146,7 +153,11 @@
       } else {
         items = [{ src: btn.dataset.src, alt: btn.dataset.alt||'', title: btn.dataset.title||'' }];
       }
-      mode = 'original'; applyMode();
+
+      // Móvil → fit; Desktop → original
+      mode = isMobile() ? 'fit' : 'original';
+      applyMode();
+
       show(0);
       if ('showModal' in dialog) dialog.showModal();
       else { dialog.setAttribute('open',''); document.documentElement.style.overflow='hidden'; }
@@ -162,12 +173,19 @@
     function next() { if (items.length > 1) show(current + 1, { animateFrom: (mode==='fit'?60:0) }); }
     function prev() { if (items.length > 1) show(current - 1, { animateFrom: (mode==='fit'?-60:0) }); }
 
-    // Abrir desde cualquier .lb-trigger
+    // Delegación: abrir desde miniatura .lb-trigger
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('.lb-trigger');
       if (!btn) return;
       e.preventDefault();
       openFromTrigger(btn);
+    });
+
+    // Doble-tap en la imagen para alternar modo
+    img.addEventListener('click', () => {
+      const now = Date.now();
+      if (now - lastTap < 300) toggleMode();
+      lastTap = now;
     });
 
     // Botones / teclado
@@ -181,7 +199,7 @@
       if (e.key === 'ArrowLeft') prev();
       if (e.key === 'ArrowRight') next();
       if (e.key.toLowerCase() === 'f') toggleMode();
-      if (e.key === '1') { mode = 'original'; applyMode(); }
+      if (e.key === '1') { mode='original'; applyMode(); }
     });
 
     // Clic fuera para cerrar
@@ -191,13 +209,14 @@
       if (!inside) closeDialog();
     });
 
-    // Gestos (solo en modo Ajustar)
-    let dragging = false, startX = 0, startY = 0, lastX = 0, lastT = 0, dx = 0, verticalAbort = false;
-    const THRESHOLD = 80, VEL_MIN = 0.4;
+    // Gestos (solo en 'fit')
+    let dragging=false,startX=0,startY=0,lastX=0,lastT=0,dx=0,verticalAbort=false;
+    const THRESHOLD=80, VEL_MIN=0.4;
 
     function onPointerDown(ev){
       if (!dialog.open || mode !== 'fit') return;
-      dragging = true; verticalAbort = false; startX = lastX = ev.clientX; startY = ev.clientY; lastT = performance.now(); dx = 0;
+      dragging = true; verticalAbort = false;
+      startX = lastX = ev.clientX; startY = ev.clientY; lastT = performance.now(); dx = 0;
       dialog.classList.add('dragging');
     }
     function onPointerMove(ev){
@@ -231,11 +250,11 @@
       if (e.deltaX > 0) next(); else prev();
     }, { passive: false });
 
-    // Siempre liberar scroll del documento al cerrar
+    // Liberar scroll siempre
     function unlockScroll(){ document.documentElement.style.overflow=''; }
     dialog.addEventListener('close', unlockScroll);
     dialog.addEventListener('cancel', (e)=>{ e.preventDefault(); dialog.close(); });
 
-    console.info('[Lightbox] listo ✓ (modo por defecto: 1:1)');
+    console.info('[Lightbox] listo ✓ (móvil abre en fit; desktop en 1:1)');
   }
 </script>

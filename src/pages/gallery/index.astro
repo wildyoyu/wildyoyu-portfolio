@@ -2,7 +2,6 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 
-// Todas las fotos por categoría, sin límite
 const all = await getCollection('shots');
 
 function itemsBy(cat) {
@@ -42,15 +41,10 @@ const tabs = [
         ))}
       </div>
 
-      <!-- Paneles: rejilla 3×N con recorte áureo horizontal -->
+      <!-- Paneles -->
       <div class="panels">
         {tabs.map((t, i) => (
-          <div
-            id={`panel-${t.id}`}
-            class={`panel${i===0 ? ' is-active' : ''}`}
-            role="tabpanel"
-            aria-labelledby={`tab-${t.id}`}
-          >
+          <div id={`panel-${t.id}`} class={`panel${i===0 ? ' is-active' : ''}`} role="tabpanel" aria-labelledby={`tab-${t.id}`}>
             {t.items.length === 0 ? (
               <p class="lead">Aún no hay fotos en {t.title.toLowerCase()}.</p>
             ) : (
@@ -75,10 +69,13 @@ const tabs = [
                             src={it.src}
                             alt={it.alt}
                             loading="lazy"
+                            decoding="async"
                             width={it.w}
                             height={it.h}
+                            sizes="(max-width:680px) 33vw, (max-width:1024px) 25vw, 18vw"
                           />
                         </div>
+
                         {hasCarousel ? (
                           <span class="badge-multi" aria-label="Carrusel" title="Carrusel">
                             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -88,7 +85,6 @@ const tabs = [
                           </span>
                         ) : null}
                       </button>
-                      {/* OJO: no ponemos <a href="/photo/..."> para evitar rutas dinámicas */}
                     </article>
                   );
                 })}
@@ -101,7 +97,7 @@ const tabs = [
   </section>
 
   <style>
-    .gallery-root{ --phi: 1.618; }
+    .gallery-root{ --gap: 4px; }
 
     /* Tabs */
     .tabs{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
@@ -113,43 +109,55 @@ const tabs = [
     }
     .tab.is-active{ background: var(--fg); color: var(--bg); border-color: transparent; }
 
-    /* Paneles */
-    .panels{ position:relative;min-height: 0; }
+    .panels{ position:relative; }
     .panel{ display:none; animation: fade .2s ease both; }
     .panel.is-active{ display:block; }
     @keyframes fade{ from{opacity:.7; transform:translateY(-4px);} to{opacity:1; transform:none;} }
 
-    /* Rejilla Instagram: 3 columnas SIEMPRE */
+    /* ===========================
+       REJILLA ESTILO INSTAGRAM
+       - Móvil: 3 columnas, miniaturas CUADRADAS (1:1).
+       - Tablet: 4 columnas, CUADRADAS.
+       - Desktop: 5 columnas, 4:3 para algo más panorámico.
+       =========================== */
+
     .ig-grid{
-  display:grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  gap: 6px;
-  align-items: stretch;
-  contain: layout paint;          /* evita reflows grandes al cargar imágenes */
-}
-
-    .tile{
-      position:relative; overflow:hidden; border-radius: 8px;
-      background: rgba(255,255,255,.04);
-    }
-    .tile .lb-trigger{
-      display:block; position:relative; padding:0; margin:0; border:0; background:none; cursor:zoom-in; width:100%;
+      display:grid;
+      gap: var(--gap);
+      align-items:start;
+      contain: layout paint;
     }
 
-    /* Wrapper que IMPONE el recorte áureo */
-    .thumb{
-  width:100%;
-  aspect-ratio: 1.618 / 1;
-  overflow:hidden;
-  border-radius: 8px;
-}
-    .thumb img{
-      width:100%; height:100%;
-      object-fit: cover; object-position: center;
-      display:block;
+    /* Columnas por breakpoint */
+    @media (max-width: 680px){
+      .ig-grid{ grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (min-width: 681px) and (max-width: 1024px){
+      .ig-grid{ grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (min-width: 1025px){
+      .ig-grid{ grid-template-columns: repeat(5, 1fr); }
     }
 
-    /* Indicador de carrusel */
+    .tile{ position:relative; overflow:hidden; border-radius: 6px; background: rgba(255,255,255,.03); }
+    .tile .lb-trigger{ display:block; position:relative; padding:0; margin:0; border:0; background:none; cursor:zoom-in; width:100%; }
+
+    /* Miniatura responsive:
+       - Móvil/Tablet: cuadrada 1:1 (cropea al centro) → look Instagram.
+       - Desktop: 4/3 (ligero recorte horizontal para ritmo visual).
+    */
+    .thumb{ width:100%; overflow:hidden; border-radius: 6px; }
+    .thumb img{ width:100%; height:100%; display:block; object-fit: cover; object-position: center; }
+
+    /* Aspect ratios por breakpoint */
+    @media (max-width: 1024px){
+      .thumb{ aspect-ratio: 1 / 1; }
+    }
+    @media (min-width: 1025px){
+      .thumb{ aspect-ratio: 4 / 3; }
+    }
+
+    /* Indicador carrusel tipo Instagram (dos cuadrados solapados) */
     .badge-multi{
       position:absolute; top:8px; right:8px;
       display:inline-grid; place-items:center;
@@ -161,12 +169,10 @@ const tabs = [
     .lead{ opacity:.9; }
   </style>
 
-  <script type="module">
-    // Tabs con hash (#wildlife|#macro|#night)
+  <script is:inline>
     const ids = ['wildlife','macro','night'];
     const tabs = Array.from(document.querySelectorAll('.tab'));
     const panels = ids.map(id => document.getElementById('panel-' + id));
-
     function activate(id){
       tabs.forEach(btn => {
         const on = btn.dataset.tab === id;
@@ -176,10 +182,8 @@ const tabs = [
       panels.forEach(p => p?.classList.toggle('is-active', p.id === 'panel-' + id));
       history.replaceState(null, '', '#' + id);
     }
-
     const initHash = location.hash.replace('#','');
     activate(ids.includes(initHash) ? initHash : ids[0]);
-
     tabs.forEach(btn => btn.addEventListener('click', () => activate(btn.dataset.tab)));
   </script>
 </BaseLayout>
