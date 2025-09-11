@@ -1,30 +1,27 @@
 ---
 /**
- * Visor vertical (tipo feed) con anchura 70%:
- * - Ancho: clamp(320px, 70vw, 1180px) · Alto: 90vh
- * - Scroll vertical por toda la categoría (scroll-snap)
- * - Sin flechas; navegación con scroll
- * - Botones por foto (abajo y centrados): Ver completa/1:1 y Compartir
- * - Móvil abre en "Ajustar"; desktop en "1:1" (cambiable en una línea)
- * - <script is:inline> para no hoistear al <head>
+ * Visor vertical 70% ancho:
+ * - Ancho: clamp(320px, 70vw, 1180px), alto 90vh
+ * - Scroll vertical por categoría (scroll-snap)
+ * - Botones circulares centrados: Like + Compartir
+ * - Likes en localStorage (por visitante). Dispara evento "yoyu:favs-changed".
+ * - En móvil abre en "fit"; en desktop en "original" (cambia 1 línea si quieres)
  */
 ---
 <dialog id="sheetviewer" class="sv" aria-label="Visor de imágenes">
   <div class="sv-backdrop" part="backdrop"></div>
 
   <div class="sv-sheet" role="document" aria-live="polite">
-    <!-- Cabecera mínima (solo cerrar) -->
     <header class="sv-top">
       <button class="sv-close" aria-label="Cerrar" title="Cerrar">×</button>
     </header>
 
-    <!-- Carril vertical de diapositivas -->
     <div class="sv-reel" tabindex="0" aria-live="polite"></div>
   </div>
 </dialog>
 
 <style>
-  .sv { inset:0; border:0; padding:0; background:transparent; }
+  .sv{ inset:0; border:0; padding:0; background:transparent; }
   .sv[open]{ display:grid; place-items:center; }
   .sv::backdrop{ background:rgba(0,0,0,.65); }
   .sv-backdrop{ position:fixed; inset:0; }
@@ -42,21 +39,14 @@
     display:grid; grid-template-rows: auto 1fr;
     touch-action: pan-y;
   }
-
-  .sv-top{
-    display:flex; align-items:center; gap:8px;
-    padding:10px; z-index:2;
-    background: linear-gradient(180deg, rgba(0,0,0,.35), transparent);
-  }
+  .sv-top{ display:flex; align-items:center; gap:8px; padding:10px;
+    background: linear-gradient(180deg, rgba(0,0,0,.35), transparent); }
   .sv-close{
-    min-width:42px; height:42px; padding:0 12px;
-    border-radius: 999px; border:1px solid rgba(255,255,255,.2);
-    background: rgba(0,0,0,.35); color:#fff; cursor:pointer;
-    display:inline-flex; align-items:center; justify-content:center;
-    backdrop-filter: blur(6px); font-weight:700;
+    min-width:42px; height:42px; padding:0 12px; border-radius:999px;
+    border:1px solid rgba(255,255,255,.2); background:rgba(0,0,0,.35); color:#fff;
+    display:inline-flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(6px);
   }
 
-  /* Carril vertical "tipo feed" */
   .sv-reel{
     position:relative; height:100%;
     overflow-y:auto; overflow-x:hidden;
@@ -66,44 +56,37 @@
   }
   .sv-slide{
     position:relative;
-    min-height: calc(90vh - 54px); /* 90vh - cabecera aprox */
+    min-height: calc(90vh - 54px);
     padding: clamp(10px, 2vw, 18px);
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap: 12px;
     scroll-snap-align: start;
   }
 
-  /* Imagen en modos */
-  .sv.mode-fit   .sv-img{ max-width: 100%; max-height: calc(100% - 70px); width:auto; height:auto; }
-  .sv.mode-original .sv-slide{ overflow:auto; } /* permite pan interno en 1:1 */
+  /* Modos de imagen */
+  .sv.mode-fit   .sv-img{ max-width: 100%; max-height: calc(100% - 90px); width:auto; height:auto; }
+  .sv.mode-original .sv-slide{ overflow:auto; }
   .sv.mode-original .sv-img{ max-width: none; max-height: none; width:auto; height:auto; }
+  .sv-img{ display:block; user-select:none; -webkit-user-drag:none; transition:transform .25s ease, opacity .25s ease; }
 
-  .sv-img{
-    display:block; user-select:none; -webkit-user-drag:none;
-    transition: transform .25s ease, opacity .25s ease;
-    will-change: transform;
-  }
-
-  /* Botones por foto (debajo y centrados) */
-  .sv-actions{
-    position: sticky; bottom: 8px; /* se mantiene visible al hacer pan interno */
-    display:flex; justify-content:center; gap: 10px;
-    width:100%;
-    pointer-events:auto;
-  }
-  .sv-actions .act{
-    width:46px; height:46px; border-radius:999px; border:none;
-    background:#fff; color:#111; cursor:pointer;
-    display:grid; place-items:center;
-    box-shadow: 0 6px 24px rgba(0,0,0,.35);
-  }
-  .sv-actions .act svg{ width:22px; height:22px; }
-
-  /* Leyenda opcional */
   .sv-cap{ opacity:.85; text-align:center; }
 
-  /* Evita "pegotes" al arrastrar */
-  .dragging .sv-img{ transition: none; }
+  /* Botones circulares centrados bajo la foto */
+  .sv-actions{
+    position: sticky; bottom: 10px;
+    display:flex; justify-content:center; gap: 12px; width:100%;
+    pointer-events:auto;
+  }
+  .act{
+    -webkit-appearance:none; appearance:none;
+    width:52px; height:52px; aspect-ratio:1/1;
+    border-radius:9999px; border:none; line-height:0;
+    background:#fff; color:#111; cursor:pointer;
+    display:grid; place-items:center; box-shadow:0 8px 30px rgba(0,0,0,.35);
+  }
+  .act svg{ width:24px; height:24px; }
+  .act-like.liked{ background:#fff; color:#e11d48; } /* corazón rojo */
+  .dragging .sv-img{ transition:none; }
 </style>
 
 <script is:inline>
@@ -114,70 +97,94 @@
     const reel    = dialog.querySelector('.sv-reel');
     const btnClose= dialog.querySelector('.sv-close');
 
-    let items = [];     // [{src, alt, title, slug}]
+    let items = [];    // [{src, alt, title, slug}]
     let current = 0;
-    let activeCat = ''; // 'wildlife' | 'macro' | 'night'
-    let mode = 'fit';   // 'fit' | 'original'
+    let activeCat = '';
+    let mode = 'fit';
 
     const isMobile = () => matchMedia('(max-width: 768px)').matches;
+
+    /* ===== Likes (localStorage) ===== */
+    const LS_KEY = 'yoyu_favs';  // guarda array de slugs
+    function getFavs(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch{ return []; } }
+    function setFavs(arr){ localStorage.setItem(LS_KEY, JSON.stringify(Array.from(new Set(arr)))); }
+    function isLiked(slug){ return getFavs().includes(slug); }
+    function toggleLike(slug){
+      const favs = new Set(getFavs());
+      if (favs.has(slug)) favs.delete(slug); else favs.add(slug);
+      setFavs([...favs]);
+      // avisa a la home para refrescar "Favoritos de los Yoyus"
+      window.dispatchEvent(new CustomEvent('yoyu:favs-changed'));
+    }
 
     function applyMode(){
       dialog.classList.toggle('mode-fit', mode === 'fit');
       dialog.classList.toggle('mode-original', mode === 'original');
     }
 
-    function renderSlides(){
-      reel.innerHTML = items.map((it, idx) => `
-        <section class="sv-slide" data-idx="${idx}">
+    function slideHTML(it, idx){
+      const liked = isLiked(it.slug || '');
+      return `
+        <section class="sv-slide" data-idx="${idx}" data-slug="${it.slug||''}">
           <img class="sv-img" src="${it.src}" alt="${it.alt || ''}" />
           ${it.title ? `<div class="sv-cap">${it.title}</div>` : ''}
 
-          <!-- Botones por foto: centrados, círculos blancos -->
-          <div class="sv-actions" role="group" aria-label="Acciones de imagen">
-            <button class="act act-fit" type="button" title="Ver completa / Ajustar" aria-label="Ver completa / Ajustar">
-              <!-- icono doble flecha -->
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M15 3h6v6M21 3l-7 7"/>
-                <path d="M9 21H3v-6M3 21l7-7"/>
+          <div class="sv-actions" role="group" aria-label="Acciones">
+            <!-- LIKE -->
+            <button class="act act-like${liked ? ' liked':''}" type="button" title="${liked ? 'Quitar de favoritos':'Añadir a favoritos'}" aria-label="Like">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12.1 21.35l-1.1-1.02C5.14 14.88 2 12.05 2 8.5 2 6 4 4 6.5 4c1.74 0 3.41.81 4.5 2.09C12.59 4.81 14.26 4 16 4 18.5 4 20.5 6 20.5 8.5c0 3.55-3.14 6.38-8.9 11.83l-.5.47z"/>
               </svg>
             </button>
+
+            <!-- COMPARTIR -->
             <button class="act act-share" type="button" title="Compartir" aria-label="Compartir">
-              <!-- icono compartir -->
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <circle cx="18" cy="5" r="3"/>
                 <circle cx="6" cy="12" r="3"/>
                 <circle cx="18" cy="19" r="3"/>
-                <path d="M8.59 13.51l6.83 3.98M15.41 6.51L8.59 10.49"/>
+                <path d="M8.6 13.5l6.8 4M15.4 6.5L8.6 10.5"/>
               </svg>
             </button>
           </div>
         </section>
-      `).join('');
+      `;
+    }
+
+    function renderSlides(){
+      reel.innerHTML = items.map(slideHTML).join('');
+    }
+
+    function slideTop(idx){
+      const headerH = (dialog.querySelector('.sv-top')?.clientHeight || 0);
+      const slideH = sheet.clientHeight - headerH;
+      return idx * slideH;
     }
 
     function scrollToIndex(idx, behavior = 'instant'){
       current = Math.max(0, Math.min(items.length - 1, idx));
-      const topOf = slideTop(current);
-      reel.scrollTo({ top: topOf, behavior });
+      reel.scrollTo({ top: slideTop(current), behavior });
       updateHash();
-    }
-
-    function slideTop(idx){
-      // Cada slide ocupa ~sheet alto menos cabecera; calculamos acumulado
-      const headerH = (dialog.querySelector('.sv-top')?.clientHeight || 0);
-      const slideH = sheet.clientHeight - headerH;
-      return idx * slideH;
+      updateButtonsState();
     }
 
     function updateCurrentOnScroll(){
       const headerH = (dialog.querySelector('.sv-top')?.clientHeight || 0);
       const slideH = sheet.clientHeight - headerH;
       const idx = Math.round(reel.scrollTop / Math.max(1, slideH));
-      if (idx !== current){ current = idx; updateHash(false); }
+      if (idx !== current){ current = idx; updateHash(false); updateButtonsState(); }
+    }
+
+    function updateButtonsState(){
+      const slide = reel.querySelector(`.sv-slide[data-idx="${current}"]`);
+      if (!slide) return;
+      const slug = slide.dataset.slug || '';
+      const likeBtn = slide.querySelector('.act-like');
+      likeBtn?.classList.toggle('liked', isLiked(slug));
+      likeBtn?.setAttribute('title', isLiked(slug) ? 'Quitar de favoritos' : 'Añadir a favoritos');
     }
 
     function openFromTrigger(btn){
-      // Carga los items de la categoría desde el panel
       const panel = btn.closest('.panel');
       if (panel?.dataset.items) {
         try { items = JSON.parse(panel.dataset.items); } catch { items = []; }
@@ -189,15 +196,12 @@
       if (!items.length) return;
 
       const startIdx = Number(btn.dataset.idx ?? 0);
-
-      // Por defecto: móvil "fit"; desktop "original" (cámbialo si prefieres)
       mode = isMobile() ? 'fit' : 'original';
       applyMode();
-
       renderSlides();
+
       if ('showModal' in dialog) dialog.showModal(); else { dialog.setAttribute('open',''); }
       document.documentElement.style.overflow = 'hidden';
-
       requestAnimationFrame(() => scrollToIndex(startIdx, 'instant'));
     }
 
@@ -217,10 +221,7 @@
       }catch{}
     }
 
-    function toggleFit(){
-      mode = (mode === 'fit') ? 'original' : 'fit';
-      applyMode();
-    }
+    function toggleFit(){ mode = (mode === 'fit') ? 'original' : 'fit'; applyMode(); }
 
     function close(){
       if (dialog.open && 'close' in dialog) dialog.close();
@@ -237,14 +238,12 @@
       else if (location.hash.replace('#','') !== newHash) history.replaceState(null, '', '#' + newHash);
     }
 
-    // Delegación: miniaturas para abrir
+    /* Delegaciones */
     document.addEventListener('click', (e) => {
-      const btn = e.target.closest('.lb-trigger');
-      if (!btn) return;
-      e.preventDefault();
-      openFromTrigger(btn);
+      const btn = e.target.closest('.lb-trigger'); if (!btn) return;
+      e.preventDefault(); openFromTrigger(btn);
     });
-    // Long press (3D touch-like)
+    // Long-press estilo 3D Touch
     let holdTimer=null;
     document.addEventListener('pointerdown', (e) => {
       const btn = e.target.closest('.lb-trigger'); if (!btn) return;
@@ -253,18 +252,16 @@
     document.addEventListener('pointerup',   () => { if (holdTimer){ clearTimeout(holdTimer); holdTimer=null; } });
     document.addEventListener('pointercancel',() => { if (holdTimer){ clearTimeout(holdTimer); holdTimer=null; } });
 
-    // Acciones por slide (delegación dentro del reel)
+    // Acciones por slide
     reel.addEventListener('click', (e) => {
-      const fitBtn = e.target.closest('.act-fit');
-      const shareBtn = e.target.closest('.act-share');
-      if (fitBtn){ e.preventDefault(); toggleFit(); }
-      if (shareBtn){ e.preventDefault(); shareCurrent(); }
+      const slide = e.target.closest('.sv-slide'); if (!slide) return;
+      const slug = slide.dataset.slug || '';
+      if (e.target.closest('.act-like')){ toggleLike(slug); updateButtonsState(); return; }
+      if (e.target.closest('.act-share')){ shareCurrent(); return; }
     });
 
-    // Scroll → actualizar índice
-    reel.addEventListener('scroll', () => { updateCurrentOnScroll(); }, { passive: true });
+    reel.addEventListener('scroll', updateCurrentOnScroll, { passive:true });
 
-    // Cerrar
     btnClose?.addEventListener('click', close);
     dialog.addEventListener('click', (e) => {
       const r = sheet.getBoundingClientRect();
@@ -274,8 +271,8 @@
     document.addEventListener('keydown', (e) => {
       if (!dialog.open) return;
       if (e.key === 'Escape') close();
-      if (e.key === 'ArrowDown') { e.preventDefault(); scrollToIndex(current + 1, 'smooth'); }
-      if (e.key === 'ArrowUp')   { e.preventDefault(); scrollToIndex(current - 1, 'smooth'); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); reel.scrollBy({ top: sheet.clientHeight, behavior:'smooth' }); }
+      if (e.key === 'ArrowUp')   { e.preventDefault(); reel.scrollBy({ top:-sheet.clientHeight, behavior:'smooth' }); }
       if (e.key.toLowerCase() === 'f') toggleFit();
       if (e.key.toLowerCase() === 's') shareCurrent();
     });
@@ -293,7 +290,7 @@
       const idx = items.findIndex(x => (x.slug && rest && x.slug === rest));
       const startIdx = idx >= 0 ? idx : Math.max(0, parseInt(rest, 10) || 0);
 
-      mode = isMobile() ? 'fit' : 'fit';
+      mode = isMobile() ? 'fit' : 'original';
       applyMode();
       renderSlides();
       if ('showModal' in dialog) dialog.showModal(); else { dialog.setAttribute('open',''); }
@@ -302,10 +299,9 @@
     }
     window.addEventListener('load', openFromHash);
 
-    // Liberar scroll al cerrar
     dialog.addEventListener('close', () => { document.documentElement.style.overflow=''; });
     dialog.addEventListener('cancel', (e)=>{ e.preventDefault(); dialog.close(); });
 
-    console.info('[SheetViewer 70% ancho] listo ✓');
+    console.info('[SheetViewer 70% + botones circulares + likes] listo ✓');
   }
 </script>
