@@ -1,25 +1,24 @@
 ---
 /**
- * Visor vertical tipo Instagram (móvil-first):
- * - Abre como "hoja" a pantalla completa.
- * - Desliza ARRIBA/ABAJO para navegar por TODA la categoría sin cerrar.
- * - SIN flechas izquierda/derecha (todo es swipe/scroll vertical).
- * - Botones: "Ajustar/1:1" y "Compartir" (Web Share API o copia enlace).
- * - En desktop se centra; en móvil ocupa 100dvh. is:inline => no se hoistea.
+ * Visor vertical (tipo feed) con anchura 70%:
+ * - Ancho: clamp(320px, 70vw, 1180px) · Alto: 90vh
+ * - Scroll vertical por toda la categoría (scroll-snap)
+ * - Sin flechas; navegación con scroll
+ * - Botones por foto (abajo y centrados): Ver completa/1:1 y Compartir
+ * - Móvil abre en "Ajustar"; desktop en "1:1" (cambiable en una línea)
+ * - <script is:inline> para no hoistear al <head>
  */
 ---
 <dialog id="sheetviewer" class="sv" aria-label="Visor de imágenes">
   <div class="sv-backdrop" part="backdrop"></div>
 
   <div class="sv-sheet" role="document" aria-live="polite">
+    <!-- Cabecera mínima (solo cerrar) -->
     <header class="sv-top">
       <button class="sv-close" aria-label="Cerrar" title="Cerrar">×</button>
-      <div class="spacer"></div>
-      <button class="sv-fit" aria-label="Cambiar tamaño" title="Ajustar / 1:1">Ajustar</button>
-      <button class="sv-share" aria-label="Compartir" title="Compartir">↗</button>
     </header>
 
-    <!-- Carril vertical de diapositivas (una por foto) -->
+    <!-- Carril vertical de diapositivas -->
     <div class="sv-reel" tabindex="0" aria-live="polite"></div>
   </div>
 </dialog>
@@ -27,13 +26,13 @@
 <style>
   .sv { inset:0; border:0; padding:0; background:transparent; }
   .sv[open]{ display:grid; place-items:center; }
-  .sv::backdrop{ background:rgba(0,0,0,.7); }
+  .sv::backdrop{ background:rgba(0,0,0,.65); }
   .sv-backdrop{ position:fixed; inset:0; }
 
   .sv-sheet{
     position:relative;
-    width:min(96vw, 1180px);
-    height:min(96vh, 900px);
+    width: clamp(320px, 70vw, 1180px);
+    height: 90vh;
     background: rgba(12,14,16,.92);
     backdrop-filter: blur(6px);
     border-radius: 18px;
@@ -43,25 +42,21 @@
     display:grid; grid-template-rows: auto 1fr;
     touch-action: pan-y;
   }
-  @media (max-width: 768px){
-    .sv-sheet{ width:100vw; height:100dvh; border-radius: 0; }
-  }
 
   .sv-top{
     display:flex; align-items:center; gap:8px;
-    padding:10px; position:relative; z-index:2;
+    padding:10px; z-index:2;
     background: linear-gradient(180deg, rgba(0,0,0,.35), transparent);
   }
-  .sv-close, .sv-fit, .sv-share{
+  .sv-close{
     min-width:42px; height:42px; padding:0 12px;
     border-radius: 999px; border:1px solid rgba(255,255,255,.2);
     background: rgba(0,0,0,.35); color:#fff; cursor:pointer;
     display:inline-flex; align-items:center; justify-content:center;
     backdrop-filter: blur(6px); font-weight:700;
   }
-  .spacer{ flex:1; }
 
-  /* Carril vertical "tipo stories feed" */
+  /* Carril vertical "tipo feed" */
   .sv-reel{
     position:relative; height:100%;
     overflow-y:auto; overflow-x:hidden;
@@ -71,21 +66,16 @@
   }
   .sv-slide{
     position:relative;
-    min-height: 100%; /* ocupa todo el alto visible */
-    padding: clamp(10px, 2.2vw, 18px);
-    display:flex; align-items:center; justify-content:center;
+    min-height: calc(90vh - 54px); /* 90vh - cabecera aprox */
+    padding: clamp(10px, 2vw, 18px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap: 12px;
     scroll-snap-align: start;
   }
 
-  /* Capción al pie (opcional) */
-  .sv-cap{
-    position:absolute; left:0; right:0; bottom:8px;
-    text-align:center; opacity:.85; padding: 0 12px;
-  }
-
-  /* Modos de ajuste */
-  .sv.mode-fit .sv-img{ max-width: 100%; max-height: 100%; width:auto; height:auto; }
-  .sv.mode-original .sv-slide{ overflow:auto; } /* permite pan interno */
+  /* Imagen en modos */
+  .sv.mode-fit   .sv-img{ max-width: 100%; max-height: calc(100% - 70px); width:auto; height:auto; }
+  .sv.mode-original .sv-slide{ overflow:auto; } /* permite pan interno en 1:1 */
   .sv.mode-original .sv-img{ max-width: none; max-height: none; width:auto; height:auto; }
 
   .sv-img{
@@ -93,6 +83,24 @@
     transition: transform .25s ease, opacity .25s ease;
     will-change: transform;
   }
+
+  /* Botones por foto (debajo y centrados) */
+  .sv-actions{
+    position: sticky; bottom: 8px; /* se mantiene visible al hacer pan interno */
+    display:flex; justify-content:center; gap: 10px;
+    width:100%;
+    pointer-events:auto;
+  }
+  .sv-actions .act{
+    width:46px; height:46px; border-radius:999px; border:none;
+    background:#fff; color:#111; cursor:pointer;
+    display:grid; place-items:center;
+    box-shadow: 0 6px 24px rgba(0,0,0,.35);
+  }
+  .sv-actions .act svg{ width:22px; height:22px; }
+
+  /* Leyenda opcional */
+  .sv-cap{ opacity:.85; text-align:center; }
 
   /* Evita "pegotes" al arrastrar */
   .dragging .sv-img{ transition: none; }
@@ -105,22 +113,17 @@
     const sheet   = dialog.querySelector('.sv-sheet');
     const reel    = dialog.querySelector('.sv-reel');
     const btnClose= dialog.querySelector('.sv-close');
-    const btnFit  = dialog.querySelector('.sv-fit');
-    const btnShare= dialog.querySelector('.sv-share');
 
     let items = [];     // [{src, alt, title, slug}]
     let current = 0;
     let activeCat = ''; // 'wildlife' | 'macro' | 'night'
-    let mode = 'fit';   // 'fit' (ajustar) | 'original' (1:1)
-    let holdTimer = null;
+    let mode = 'fit';   // 'fit' | 'original'
 
     const isMobile = () => matchMedia('(max-width: 768px)').matches;
 
     function applyMode(){
       dialog.classList.toggle('mode-fit', mode === 'fit');
       dialog.classList.toggle('mode-original', mode === 'original');
-      btnFit.textContent = (mode === 'fit') ? 'Ajustar' : '1:1';
-      btnFit.title = (mode === 'fit') ? 'Ajustado a visor' : 'Tamaño original';
     }
 
     function renderSlides(){
@@ -128,63 +131,82 @@
         <section class="sv-slide" data-idx="${idx}">
           <img class="sv-img" src="${it.src}" alt="${it.alt || ''}" />
           ${it.title ? `<div class="sv-cap">${it.title}</div>` : ''}
+
+          <!-- Botones por foto: centrados, círculos blancos -->
+          <div class="sv-actions" role="group" aria-label="Acciones de imagen">
+            <button class="act act-fit" type="button" title="Ver completa / Ajustar" aria-label="Ver completa / Ajustar">
+              <!-- icono doble flecha -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 3h6v6M21 3l-7 7"/>
+                <path d="M9 21H3v-6M3 21l7-7"/>
+              </svg>
+            </button>
+            <button class="act act-share" type="button" title="Compartir" aria-label="Compartir">
+              <!-- icono compartir -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="18" cy="5" r="3"/>
+                <circle cx="6" cy="12" r="3"/>
+                <circle cx="18" cy="19" r="3"/>
+                <path d="M8.59 13.51l6.83 3.98M15.41 6.51L8.59 10.49"/>
+              </svg>
+            </button>
+          </div>
         </section>
       `).join('');
     }
 
     function scrollToIndex(idx, behavior = 'instant'){
       current = Math.max(0, Math.min(items.length - 1, idx));
-      const slideH = sheet.clientHeight - (dialog.querySelector('.sv-top')?.clientHeight || 0);
-      reel.scrollTo({ top: current * slideH, behavior });
+      const topOf = slideTop(current);
+      reel.scrollTo({ top: topOf, behavior });
       updateHash();
     }
 
+    function slideTop(idx){
+      // Cada slide ocupa ~sheet alto menos cabecera; calculamos acumulado
+      const headerH = (dialog.querySelector('.sv-top')?.clientHeight || 0);
+      const slideH = sheet.clientHeight - headerH;
+      return idx * slideH;
+    }
+
     function updateCurrentOnScroll(){
-      const slideH = sheet.clientHeight - (dialog.querySelector('.sv-top')?.clientHeight || 0);
+      const headerH = (dialog.querySelector('.sv-top')?.clientHeight || 0);
+      const slideH = sheet.clientHeight - headerH;
       const idx = Math.round(reel.scrollTop / Math.max(1, slideH));
       if (idx !== current){ current = idx; updateHash(false); }
     }
 
     function openFromTrigger(btn){
-      // Encuentra el panel (categoría) y carga su dataset.items
+      // Carga los items de la categoría desde el panel
       const panel = btn.closest('.panel');
       if (panel?.dataset.items) {
-        try {
-          items = JSON.parse(panel.dataset.items);
-        } catch {
-          items = [];
-        }
+        try { items = JSON.parse(panel.dataset.items); } catch { items = []; }
         activeCat = panel.dataset.cat || '';
       } else {
-        // Fallback: solo esa imagen
         items = [{ src: btn.dataset.src, alt: btn.dataset.alt || '', title: btn.dataset.title || '', slug: btn.dataset.slug || '' }];
         activeCat = document.querySelector('.tab.is-active')?.dataset.tab || '';
       }
       if (!items.length) return;
 
-      // índice de la miniatura pulsada
       const startIdx = Number(btn.dataset.idx ?? 0);
 
-      // Móvil abre en "fit", desktop puede abrir en original si quieres
-      mode = isMobile() ? 'fit' : 'fit'; // cambia a 'original' para desktop si lo prefieres
+      // Por defecto: móvil "fit"; desktop "original" (cámbialo si prefieres)
+      mode = isMobile() ? 'fit' : 'original';
       applyMode();
 
       renderSlides();
       if ('showModal' in dialog) dialog.showModal(); else { dialog.setAttribute('open',''); }
       document.documentElement.style.overflow = 'hidden';
 
-      // Posiciona en la slide correcta
       requestAnimationFrame(() => scrollToIndex(startIdx, 'instant'));
     }
 
     async function shareCurrent(){
       const it = items[current] || {};
-      // Enlace canónico: /gallery#<cat>:<slug|idx>
       const slugOrIdx = it.slug || String(current);
       const url = new URL(location.href);
       url.hash = `${activeCat}:${slugOrIdx}`;
       const shareUrl = url.toString();
-
       try{
         if (navigator.share){
           await navigator.share({ title: it.title || 'Foto', url: shareUrl });
@@ -193,6 +215,11 @@
           alert('Enlace copiado al portapapeles');
         }
       }catch{}
+    }
+
+    function toggleFit(){
+      mode = (mode === 'fit') ? 'original' : 'fit';
+      applyMode();
     }
 
     function close(){
@@ -210,53 +237,53 @@
       else if (location.hash.replace('#','') !== newHash) history.replaceState(null, '', '#' + newHash);
     }
 
-    // Delegación: click y "long press" en miniaturas .lb-trigger
+    // Delegación: miniaturas para abrir
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('.lb-trigger');
       if (!btn) return;
       e.preventDefault();
       openFromTrigger(btn);
     });
+    // Long press (3D touch-like)
+    let holdTimer=null;
     document.addEventListener('pointerdown', (e) => {
-      const btn = e.target.closest('.lb-trigger');
-      if (!btn) return;
-      holdTimer = setTimeout(() => { openFromTrigger(btn); }, 400);
+      const btn = e.target.closest('.lb-trigger'); if (!btn) return;
+      holdTimer = setTimeout(() => openFromTrigger(btn), 400);
     });
-    document.addEventListener('pointerup',   () => { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } });
-    document.addEventListener('pointercancel',() => { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } });
+    document.addEventListener('pointerup',   () => { if (holdTimer){ clearTimeout(holdTimer); holdTimer=null; } });
+    document.addEventListener('pointercancel',() => { if (holdTimer){ clearTimeout(holdTimer); holdTimer=null; } });
 
-    // Botones
-    btnClose?.addEventListener('click', close);
-    btnFit?.addEventListener('click', () => { mode = (mode === 'fit') ? 'original' : 'fit'; applyMode(); });
-    btnShare?.addEventListener('click', shareCurrent);
+    // Acciones por slide (delegación dentro del reel)
+    reel.addEventListener('click', (e) => {
+      const fitBtn = e.target.closest('.act-fit');
+      const shareBtn = e.target.closest('.act-share');
+      if (fitBtn){ e.preventDefault(); toggleFit(); }
+      if (shareBtn){ e.preventDefault(); shareCurrent(); }
+    });
 
     // Scroll → actualizar índice
     reel.addEventListener('scroll', () => { updateCurrentOnScroll(); }, { passive: true });
 
-    // Clic fuera para cerrar
+    // Cerrar
+    btnClose?.addEventListener('click', close);
     dialog.addEventListener('click', (e) => {
       const r = sheet.getBoundingClientRect();
       const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
       if (!inside) close();
     });
-
-    // Teclado
     document.addEventListener('keydown', (e) => {
       if (!dialog.open) return;
       if (e.key === 'Escape') close();
-      if (e.key.toLowerCase() === 'f') { mode = (mode === 'fit') ? 'original' : 'fit'; applyMode(); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); scrollToIndex(current + 1, 'smooth'); }
+      if (e.key === 'ArrowUp')   { e.preventDefault(); scrollToIndex(current - 1, 'smooth'); }
+      if (e.key.toLowerCase() === 'f') toggleFit();
       if (e.key.toLowerCase() === 's') shareCurrent();
-      // Arriba/abajo para navegar (útil en desktop)
-      if (e.key === 'ArrowDown') scrollToIndex(current + 1, 'smooth');
-      if (e.key === 'ArrowUp')   scrollToIndex(current - 1, 'smooth');
     });
 
-    // Abrir directo por URL: /gallery#macro:slug
+    // Abrir directo por hash /gallery#cat:slug
     function openFromHash(){
-      const h = location.hash.replace('#','');
-      if (!h) return;
-      const [cat, rest] = h.split(':');
-      if (!cat) return;
+      const h = location.hash.replace('#',''); if (!h) return;
+      const [cat, rest] = h.split(':'); if (!cat) return;
       const panel = document.getElementById('panel-' + cat);
       if (!panel || !panel.dataset.items) return;
       activeCat = cat;
@@ -275,9 +302,10 @@
     }
     window.addEventListener('load', openFromHash);
 
-    // Liberar scroll siempre al cerrar
+    // Liberar scroll al cerrar
     dialog.addEventListener('close', () => { document.documentElement.style.overflow=''; });
     dialog.addEventListener('cancel', (e)=>{ e.preventDefault(); dialog.close(); });
-    console.info('[SheetViewer] listo ✓');
+
+    console.info('[SheetViewer 70% ancho] listo ✓');
   }
 </script>
