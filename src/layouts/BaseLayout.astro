@@ -52,6 +52,11 @@ const jsonLd = {
     <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
     <meta name="color-scheme" content="dark light" />
   </head>
+<body>
+  <slot />
+  <Lightbox />
+</body>
+
   <body class="min-h-screen">
     <NavBar />
     <slot />

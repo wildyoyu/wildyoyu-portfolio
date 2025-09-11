@@ -1,32 +1,33 @@
 ---
 /**
- * Visor vertical (70% ancho) con pie blanco + botones circulares.
- * - Ancho: clamp(320px, 70vw, 1180px) · Alto: 90vh
- * - Navegación vertical (scroll-snap) por toda la categoría
- * - Pie de foto STICKY con título + Like ❤️ + Compartir ↗
- * - Likes en localStorage (evento "yoyu:favs-changed" para la Home)
- * - Solo abre al pulsar miniatura (o hash #cat:slug|idx)
+ * YLB = Yoyu LightBox
+ * - Ancho: clamp(320px, 70vw, 1180px), alto 90vh
+ * - Scroll vertical por categoría
+ * - PIE BLANCO tipo Instagram con título + Like ❤️ + Compartir ↗
+ * - Abre en la FOTO QUE TOCAS (usa data-idx y scrollIntoView)
+ * - Likes en localStorage + evento "yoyu:favs-changed"
+ * - Solo abre si hay miniatura o hash #cat:slug|idx (no con #cat solo)
  */
 ---
-<dialog id="sheetviewer" class="sv" aria-label="Visor de imágenes">
-  <div class="sv-backdrop" part="backdrop"></div>
+<dialog id="ylb" class="ylb" aria-label="Visor de imágenes">
+  <div class="ylb__backdrop" part="backdrop"></div>
 
-  <div class="sv-sheet" role="document" aria-live="polite">
-    <header class="sv-top">
-      <button class="sv-close" aria-label="Cerrar" title="Cerrar">×</button>
+  <div class="ylb__sheet" role="document" aria-live="polite">
+    <header class="ylb__top">
+      <button class="ylb__close" aria-label="Cerrar" title="Cerrar">×</button>
     </header>
 
-    <div class="sv-reel" tabindex="0" aria-live="polite"></div>
+    <div class="ylb__reel" tabindex="0" aria-live="polite"></div>
   </div>
 </dialog>
 
 <style>
-  .sv{ inset:0; border:0; padding:0; background:transparent; }
-  .sv[open]{ display:grid; place-items:center; }
-  .sv::backdrop{ background:rgba(0,0,0,.65); }
-  .sv-backdrop{ position:fixed; inset:0; }
+  .ylb { inset:0; border:0; padding:0; background:transparent; }
+  .ylb[open]{ display:grid; place-items:center; }
+  .ylb::backdrop{ background:rgba(0,0,0,.65); }
+  .ylb__backdrop{ position:fixed; inset:0; }
 
-  .sv-sheet{
+  .ylb__sheet{
     position:relative;
     width: clamp(320px, 70vw, 1180px);
     height: 90vh;
@@ -40,18 +41,19 @@
     touch-action: pan-y;
   }
 
-  .sv-top{
+  .ylb__top{
     display:flex; align-items:center; gap:8px; padding:10px;
     background: linear-gradient(180deg, rgba(0,0,0,.35), transparent);
   }
-  .sv-close{
-    min-width:42px; height:42px; padding:0 12px;
-    border-radius:9999px; border:1px solid rgba(255,255,255,.2);
-    background:rgba(0,0,0,.35); color:#fff; cursor:pointer;
-    display:inline-flex; align-items:center; justify-content:center; backdrop-filter:blur(6px);
+  .ylb__close{
+    all: unset;
+    width:42px; height:42px; border-radius:9999px;
+    display:grid; place-items:center; cursor:pointer;
+    color:#fff; background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.25);
+    backdrop-filter: blur(6px);
   }
 
-  .sv-reel{
+  .ylb__reel{
     height:100%;
     overflow-y:auto; overflow-x:hidden;
     scroll-snap-type: y mandatory;
@@ -59,68 +61,57 @@
     overscroll-behavior-y: contain;
   }
 
-  .sv-slide{
-    min-height: calc(90vh - 54px); /* alto total menos cabecera */
+  .ylb__slide{
+    min-height: calc(90vh - 54px);
     padding: clamp(10px, 2vw, 18px);
     scroll-snap-align: start;
     display:flex; flex-direction:column; align-items:center; gap:12px;
   }
 
-  /* Figura centrada: define el ancho del contenido y hace sticky el pie */
-  .sv-figure{
+  .ylb__figure{
     width: min(92%, 980px);
     display:flex; flex-direction:column; align-items:center; gap:12px;
     max-height: calc(90vh - 54px - 20px);
-    overflow:auto; /* permite pan si la imagen es enorme */
+    overflow:auto;
   }
 
-  /* Imagen */
-  .sv-img{ display:block; user-select:none; -webkit-user-drag:none; transition:transform .25s ease, opacity .25s ease; }
-  @media (max-width: 768px){
-    .sv-img{ width:100%; height:auto; max-height: 64vh; }
-  }
+  .ylb__img{ display:block; user-select:none; -webkit-user-drag:none; max-width:100%; }
+  @media (max-width:768px){ .ylb__img{ max-height:64vh; height:auto; } }
 
-  /* Pie de foto blanco STICKY con botones */
-  .sv-caption{
+  /* PIE BLANCO tipo Instagram */
+  .ylb__caption{
     position: sticky; bottom: 0;
     width: 100%;
-    background: #fff; color:#111;
-    border-radius: 12px;
-    box-shadow: 0 12px 32px rgba(0,0,0,.25);
+    background:#fff; color:#111;
+    border-radius:12px; box-shadow:0 12px 32px rgba(0,0,0,.25);
     display:flex; align-items:center; gap:10px;
-    padding: 10px 12px; z-index: 5;
+    padding:10px 12px; z-index:5;
   }
-  .cap-text{
+  .ylb__captext{
     min-width:0; flex:1; font-weight:700;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  .cap-actions{ display:flex; gap:8px; }
+  .ylb__actions{ display:flex; gap:8px; }
 
-  /* Botones circulares robustos (neutralizan estilos globales) */
-  .cap-btn{
-    all: unset;
-    box-sizing: border-box;
-    width:40px; height:40px;
-    background:#fff; color:#111;
-    border:1px solid #e5e7eb;
-    border-radius:9999px !important;
-    display:grid; place-items:center;
-    cursor:pointer;
+  /* Botones redondos robustos (neutralizan estilos globales) */
+  .ylb__btn{
+    all: unset; box-sizing: border-box;
+    width:40px; height:40px; border-radius:9999px !important;
+    background:#fff !important; color:#111 !important;
+    border:1px solid #e5e7eb !important;
+    display:grid; place-items:center; cursor:pointer;
   }
-  .cap-btn svg{ width:22px; height:22px; display:block; }
-  .cap-like.liked{ color:#e11d48; }
-  .cap-like.liked svg{ fill: currentColor; }
-
-  .dragging .sv-img{ transition:none; }
+  .ylb__btn svg{ width:22px; height:22px; display:block; }
+  .ylb__btn--like.liked{ color:#e11d48 !important; }
+  .ylb__btn--like.liked svg{ fill: currentColor; }
 </style>
 
 <script is:inline>
-  const dialog  = document.getElementById('sheetviewer');
-  if (!dialog) { console.warn('[SheetViewer] No se encontró el dialog.'); }
+  const dlg   = document.getElementById('ylb');
+  if (!dlg) { console.warn('[YLB] No se encontró el dialog'); }
   else {
-    const sheet   = dialog.querySelector('.sv-sheet');
-    const reel    = dialog.querySelector('.sv-reel');
-    const btnClose= dialog.querySelector('.sv-close');
+    const reel  = dlg.querySelector('.ylb__reel');
+    const close = dlg.querySelector('.ylb__close');
 
     let items = [];    // [{src, alt, title, slug}]
     let current = 0;
@@ -142,20 +133,18 @@
       const liked = isLiked(it.slug || '');
       const title = it.title || it.alt || '';
       return `
-        <section class="sv-slide" data-idx="${idx}" data-slug="${it.slug||''}">
-          <div class="sv-figure">
-            <img class="sv-img" src="${it.src}" alt="${it.alt || ''}" />
-            <div class="sv-caption">
-              <div class="cap-text" title="${title.replace(/"/g, '&quot;')}">${title}</div>
-              <div class="cap-actions">
-                <!-- LIKE -->
-                <button class="cap-btn cap-like${liked ? ' liked':''}" type="button" aria-label="Like" title="${liked ? 'Quitar de favoritos':'Añadir a favoritos'}">
+        <section class="ylb__slide" data-idx="${idx}" data-slug="${it.slug||''}">
+          <div class="ylb__figure">
+            <img class="ylb__img" src="${it.src}" alt="${it.alt||''}" />
+            <div class="ylb__caption">
+              <div class="ylb__captext" title="${title.replace(/"/g,'&quot;')}">${title}</div>
+              <div class="ylb__actions">
+                <button class="ylb__btn ylb__btn--like${liked?' liked':''}" type="button" aria-label="Like" title="${liked?'Quitar de favoritos':'Añadir a favoritos'}">
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M12.1 21.35l-1.1-1.02C5.14 14.88 2 12.05 2 8.5 2 6 4 4 6.5 4c1.74 0 3.41.81 4.5 2.09C12.59 4.81 14.26 4 16 4 18.5 4 20.5 6 20.5 8.5c0 3.55-3.14 6.38-8.9 11.83l-.5.47z" fill="currentColor"/>
                   </svg>
                 </button>
-                <!-- COMPARTIR -->
-                <button class="cap-btn cap-share" type="button" aria-label="Compartir" title="Compartir">
+                <button class="ylb__btn ylb__btn--share" type="button" aria-label="Compartir" title="Compartir">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/>
                     <path d="M12 16V3"/>
@@ -171,38 +160,31 @@
 
     function renderSlides(){ reel.innerHTML = items.map(slideHTML).join(''); }
 
-    const headerH = () => (dialog.querySelector('.sv-top')?.clientHeight || 0);
-    const slideH  = () => sheet.clientHeight - headerH();
-    const slideTop= (idx) => idx * slideH();
-
-    function scrollToIndex(idx, behavior='instant'){
-      current = Math.max(0, Math.min(items.length - 1, idx));
-      reel.scrollTo({ top: slideTop(current), behavior });
+    function scrollToIdx(idx, behavior='auto'){
+      current = Math.max(0, Math.min(items.length-1, Number(idx)||0));
+      const slide = reel.querySelector(`.ylb__slide[data-idx="${current}"]`);
+      if (slide) slide.scrollIntoView({ behavior, block: 'start' });
       updateHash();
       syncLikeState();
     }
 
-    function updateCurrentOnScroll(){
-      const idx = Math.round(reel.scrollTop / Math.max(1, slideH()));
-      if (idx !== current){ current = idx; updateHash(false); syncLikeState(); }
-    }
-
     function syncLikeState(){
-      const slide = reel.querySelector(`.sv-slide[data-idx="${current}"]`);
+      const slide = reel.querySelector(`.ylb__slide[data-idx="${current}"]`);
       if (!slide) return;
       const slug = slide.dataset.slug || '';
-      const likeBtn = slide.querySelector('.cap-like');
+      const likeBtn = slide.querySelector('.ylb__btn--like');
       likeBtn?.classList.toggle('liked', isLiked(slug));
       likeBtn?.setAttribute('title', isLiked(slug) ? 'Quitar de favoritos' : 'Añadir a favoritos');
     }
 
     function openFromTrigger(btn){
+      // Lee toda la categoría del panel
       const panel = btn.closest('.panel');
       if (panel?.dataset.items) {
         try { items = JSON.parse(panel.dataset.items); } catch { items = []; }
         activeCat = panel.dataset.cat || '';
       } else {
-        items = [{ src: btn.dataset.src, alt: btn.dataset.alt || '', title: btn.dataset.title || '', slug: btn.dataset.slug || '' }];
+        items = [{ src: btn.dataset.src, alt: btn.dataset.alt||'', title: btn.dataset.title||'', slug: btn.dataset.slug||'' }];
         activeCat = document.querySelector('.tab.is-active')?.dataset.tab || '';
       }
       if (!items.length) return;
@@ -210,9 +192,11 @@
       const startIdx = Number(btn.dataset.idx ?? 0);
       renderSlides();
 
-      if ('showModal' in dialog) dialog.showModal(); else dialog.setAttribute('open','');
+      if ('showModal' in dlg) dlg.showModal(); else dlg.setAttribute('open','');
       document.documentElement.style.overflow = 'hidden';
-      requestAnimationFrame(() => scrollToIndex(startIdx, 'instant'));
+
+      // MUY IMPORTANTE: abrir en la foto pulsada
+      requestAnimationFrame(() => scrollToIdx(startIdx, 'auto'));
     }
 
     async function shareCurrent(){
@@ -231,22 +215,15 @@
       }catch{}
     }
 
-    function close(){
-      if (dialog.open && 'close' in dialog) dialog.close();
-      dialog.removeAttribute('open');
-      document.documentElement.style.overflow = '';
-    }
-
-    function updateHash(push = true){
+    function updateHash(push=true){
       if (!activeCat) return;
       const it = items[current] || {};
       const slugOrIdx = it.slug || String(current);
       const newHash = `${activeCat}:${slugOrIdx}`;
-      if (push) history.replaceState(null, '', '#' + newHash);
-      else if (location.hash.replace('#','') !== newHash) history.replaceState(null, '', '#' + newHash);
+      if (push) history.replaceState(null, '', '#'+newHash);
     }
 
-    /* Delegaciones globales */
+    // Delegación
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('.lb-trigger'); if (!btn) return;
       e.preventDefault(); openFromTrigger(btn);
@@ -254,54 +231,40 @@
 
     // Acciones del pie
     reel.addEventListener('click', (e) => {
-      const slide = e.target.closest('.sv-slide'); if (!slide) return;
+      const slide = e.target.closest('.ylb__slide'); if (!slide) return;
       const slug = slide.dataset.slug || '';
-      if (e.target.closest('.cap-like')){ toggleLike(slug); syncLikeState(); return; }
-      if (e.target.closest('.cap-share')){ 
-        e.preventDefault(); 
-        shareCurrent(); 
-        return; 
-      }
+      if (e.target.closest('.ylb__btn--like')){ toggleLike(slug); syncLikeState(); }
+      if (e.target.closest('.ylb__btn--share')){ e.preventDefault(); shareCurrent(); }
     });
 
-    reel.addEventListener('scroll', updateCurrentOnScroll, { passive:true });
-
-    btnClose?.addEventListener('click', close);
-    dialog.addEventListener('click', (e) => {
-      const r = sheet.getBoundingClientRect();
+    // Cerrar
+    close?.addEventListener('click', () => { dlg.close?.(); dlg.removeAttribute('open'); document.documentElement.style.overflow=''; });
+    dlg.addEventListener('click', (e) => {
+      const r = dlg.querySelector('.ylb__sheet').getBoundingClientRect();
       const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY <= r.bottom && e.clientY >= r.top;
-      if (!inside) close();
-    });
-    document.addEventListener('keydown', (e) => {
-      if (!dialog.open) return;
-      if (e.key === 'Escape') close();
-      if (e.key === 'ArrowDown') { e.preventDefault(); reel.scrollBy({ top: sheet.clientHeight, behavior:'smooth' }); }
-      if (e.key === 'ArrowUp')   { e.preventDefault(); reel.scrollBy({ top:-sheet.clientHeight, behavior:'smooth' }); }
-      if (e.key.toLowerCase() === 's') shareCurrent();
+      if (!inside) { dlg.close?.(); dlg.removeAttribute('open'); document.documentElement.style.overflow=''; }
     });
 
-    // Abrir por hash SOLO si hay slug/índice
+    // Abrir directo por hash SOLO si hay slug/idx (no #cat)
     function openFromHash(){
       const h = location.hash.replace('#',''); if (!h || !h.includes(':')) return;
       const [cat, rest] = h.split(':'); if (!cat || !rest) return;
-      const panel = document.getElementById('panel-' + cat);
+      const panel = document.getElementById('panel-'+cat);
       if (!panel || !panel.dataset.items) return;
       activeCat = cat;
-      try { items = JSON.parse(panel.dataset.items); } catch { items = []; }
+      try{ items = JSON.parse(panel.dataset.items); }catch{ items = []; }
       if (!items.length) return;
 
-      const idx = items.findIndex(x => x.slug && rest && x.slug === rest);
-      const startIdx = idx >= 0 ? idx : Math.max(0, parseInt(rest, 10) || 0);
-
       renderSlides();
-      if ('showModal' in dialog) dialog.showModal(); else dialog.setAttribute('open','');
+      if ('showModal' in dlg) dlg.showModal(); else dlg.setAttribute('open','');
       document.documentElement.style.overflow = 'hidden';
-      requestAnimationFrame(() => scrollToIndex(startIdx, 'instant'));
+
+      const idx = items.findIndex(x => x.slug && rest && x.slug === rest);
+      const start = idx >= 0 ? idx : Math.max(0, parseInt(rest,10) || 0);
+      requestAnimationFrame(() => scrollToIdx(start, 'auto'));
     }
     window.addEventListener('load', openFromHash);
 
-    dialog.addEventListener('close', () => { document.documentElement.style.overflow=''; });
-
-    console.info('[SheetViewer 70% + caption blanco + like/share] listo ✓');
+    console.info('[YLB listo ✓]');
   }
 </script>
