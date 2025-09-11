@@ -1,11 +1,11 @@
 ---
-title: "sunset"
+title: "Sunset"
 src: "/photos/sunset.webp"
-alt: "Sympetrum fonscolombii al amanecer, posada sobre un junco"
+alt: "Sunset espectacular."
 w: 2560
 h: 1440
 date: 2025-09-01
 category: wildlife
-tags: [libélula, odonata, amanecer]
+tags: [sunset]
 featured: true
 ---

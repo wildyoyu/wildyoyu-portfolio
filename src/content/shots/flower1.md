@@ -1,5 +1,5 @@
 ---
-title: "Syrphidae en flor"
+title: "Mirabilis Jalapa"
 src: "/photos/flower1.webp"      
 srcs: ["/photos/flower2.webp"]        
 alt: "Mirabilis Jalapa observada de noche, cuando abre sus pétalos."

@@ -1,27 +1,31 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCollection } from 'astro:content';
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
 
-const all = await getCollection('shots');
+const all = await getCollection("shots");
 
 function itemsBy(cat) {
   return all
-    .filter((e) => (e.data.category || '').toLowerCase() === cat)
-    .sort((a, b) => {
-      const da = a.data.date ? new Date(a.data.date).getTime() : 0;
-      const db = b.data.date ? new Date(b.data.date).getTime() : 0;
-      return db - da;
-    })
-    .map((e) => ({ slug: e.slug, srcs: e.data.srcs ?? [], ...e.data }));
+    .filter((e) => (e.data.category || "").toLowerCase() === cat)
+    .sort((a, b) => new Date(b.data.date || 0).getTime() - new Date(a.data.date || 0).getTime())
+    .map((e) => ({
+      slug: e.slug,
+      src: e.data.src,
+      srcs: e.data.srcs || [],   // ← importante para carrusel
+      alt: e.data.alt,
+      title: e.data.title,
+      w: e.data.w, h: e.data.h
+    }));
 }
 
+
 const tabs = [
-  { id: 'wildlife', title: 'Wildlife',     items: itemsBy('wildlife') },
-  { id: 'macro',    title: 'Macro space',  items: itemsBy('macro') },
-  { id: 'night',    title: 'Night moments',items: itemsBy('night') },
+  { id: "wildlife", title: "Wildlife", items: itemsBy("wildlife") },
+  { id: "macro", title: "Macro space", items: itemsBy("macro") },
+  { id: "night", title: "Night moments", items: itemsBy("night") },
 ];
 ---
-<BaseLayout title="Galería — Wildyoyu" description="Explora por secciones: Wildlife, Macro y Night">
+<BaseLayout title="Galería — Wildyoyu" description="Wildlife, Macro y Night">
   <section class="section">
     <div class="container gallery-root">
       <div class="tabs" role="tablist" aria-label="Secciones de galería">
@@ -41,121 +45,78 @@ const tabs = [
       </div>
 
       <div class="panels">
-        {tabs.map((t, i) => {
-          // Serializamos items mínimos para el visor (toda la categoría):
-          const itemsForViewer = t.items.map(it => ({
-            src: it.src,
-            alt: it.alt,
-            title: it.title,
-            slug: it.slug
-          }));
-          return (
-            <div
-              id={`panel-${t.id}`}
-              class={`panel${i===0 ? ' is-active' : ''}`}
-              role="tabpanel"
-              aria-labelledby={`tab-${t.id}`}
-              data-cat={t.id}
-              data-items={JSON.stringify(itemsForViewer)}
-            >
-              {t.items.length === 0 ? (
-                <p class="lead">Aún no hay fotos en {t.title.toLowerCase()}.</p>
-              ) : (
-                <div class="ig-grid">
-                  {t.items.map((it, idx) => {
-                    const hasCarousel = it.srcs && it.srcs.length > 0;
-                    const list = hasCarousel ? JSON.stringify([it.src, ...it.srcs]) : undefined;
-                    return (
-                      <article class="tile">
-                        <button
-                          class="lb-trigger"
-                          type="button"
-                          aria-label={`Abrir ${it.title} a pantalla completa`}
-                          data-src={it.src}
-                          data-srcs={list}
-                          data-alt={it.alt}
-                          data-title={it.title}
-                          data-idx={idx}
-                          data-slug={it.slug}
-                          title={it.title}
-                        >
-                          <div class="thumb">
-                            <img
-                              src={it.src}
-                              alt={it.alt}
-                              loading="lazy"
-                              decoding="async"
-                              width={it.w}
-                              height={it.h}
-                              sizes="(max-width:680px) 33vw, (max-width:1024px) 25vw, 18vw"
-                            />
-                          </div>
-
-                          {hasCarousel ? (
-                            <span class="badge-multi" aria-label="Carrusel" title="Carrusel">
-                              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                                <rect x="5" y="5" width="10" height="10" rx="2" fill="currentColor" opacity=".85"/>
-                                <rect x="9" y="9" width="10" height="10" rx="2" fill="currentColor"/>
-                              </svg>
-                            </span>
-                          ) : null}
-                        </button>
-                      </article>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {tabs.map((t, i) => (
+          <div
+            id={`panel-${t.id}`}
+            class={`panel${i===0 ? ' is-active' : ''}`}
+            role="tabpanel"
+            aria-labelledby={`tab-${t.id}`}
+            data-cat={t.id}
+            data-items={JSON.stringify(
+              t.items.map(it => ({ src: it.src, alt: it.alt, title: it.title, slug: it.slug }))
+            )}
+          >
+            {t.items.length === 0 ? (
+              <p class="lead">Aún no hay fotos en {t.title.toLowerCase()}.</p>
+            ) : (
+              <div class="ig-grid">
+                {t.items.map((it, idx) => (
+                  <article class="tile">
+                    <button
+                      class="lb-trigger"
+                      type="button"
+                      data-idx={idx}
+                      data-slug={it.slug}
+                      data-src={it.src}
+                      data-alt={it.alt}
+                      data-title={it.title}
+                      title={it.title}
+                    >
+                      <div class="thumb">
+                        <img
+                          src={it.src}
+                          alt={it.alt}
+                          loading="lazy"
+                          decoding="async"
+                          sizes="(max-width:680px) 33vw, (max-width:1024px) 25vw, 18vw"
+                        />
+                      </div>
+                    </button>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   </section>
 
   <style>
-    .gallery-root{ --gap: 4px; }
+    .tabs{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px}
+    .tab{padding:.6rem .9rem; border-radius:999px; border:1px solid rgba(255,255,255,.18);
+         background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02)); font-weight:800}
+    .tab.is-active{background:var(--fg); color:var(--bg); border-color:transparent}
 
-    .tabs{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
-    .tab{
-      cursor:pointer; padding:.6rem .9rem; border-radius:999px; font-weight:700;
-      border:1px solid rgba(255,255,255,.18);
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      color: var(--fg);
-    }
-    .tab.is-active{ background: var(--fg); color: var(--bg); border-color: transparent; }
+    .panels{position:relative}
+    .panel{display:none} .panel.is-active{display:block}
 
-    .panels{ position:relative; }
-    .panel{ display:none; animation: fade .2s ease both; }
-    .panel.is-active{ display:block; }
-    @keyframes fade{ from{opacity:.7; transform:translateY(-4px);} to{opacity:1; transform:none;} }
+    .ig-grid{display:grid; gap:4px}
+    @media (max-width:680px){ .ig-grid{grid-template-columns:repeat(3,1fr)} }
+    @media (min-width:681px) and (max-width:1024px){ .ig-grid{grid-template-columns:repeat(4,1fr)} }
+    @media (min-width:1025px){ .ig-grid{grid-template-columns:repeat(5,1fr)} }
 
-    /* Rejilla estilo IG, responsive */
-    .ig-grid{ display:grid; gap: var(--gap); align-items:start; contain: layout paint; }
-    @media (max-width: 680px){ .ig-grid{ grid-template-columns: repeat(3, 1fr); } }
-    @media (min-width: 681px) and (max-width: 1024px){ .ig-grid{ grid-template-columns: repeat(4, 1fr); } }
-    @media (min-width: 1025px){ .ig-grid{ grid-template-columns: repeat(5, 1fr); } }
-
-    .tile{ position:relative; overflow:hidden; border-radius: 6px; background: rgba(255,255,255,.03); }
-    .tile .lb-trigger{ display:block; position:relative; padding:0; margin:0; border:0; background:none; cursor:zoom-in; width:100%; }
-
-    /* Miniaturas: cuadradas 1:1 en móvil/tablet; 4:3 en desktop (puedes dejarlas 1:1 en todo) */
-    .thumb{ width:100%; overflow:hidden; border-radius:6px; }
-    .thumb img{ width:100%; height:100%; display:block; object-fit: cover; object-position: center; }
-    @media (max-width: 1024px){ .thumb{ aspect-ratio: 1 / 1; } }
-    @media (min-width: 1025px){ .thumb{ aspect-ratio: 4 / 3; } }
-
-    .badge-multi{
-      position:absolute; top:8px; right:8px;
-      display:inline-grid; place-items:center;
-      width:26px; height:26px; border-radius:999px;
-      background: rgba(0,0,0,.45); color:#fff; backdrop-filter: blur(6px);
-    }
+    .tile{position:relative; overflow:hidden; border-radius:6px; background:rgba(255,255,255,.03)}
+    .lb-trigger{display:block; width:100%; padding:0; margin:0; border:0; background:none; cursor:zoom-in}
+    .thumb{width:100%; aspect-ratio:1/1; overflow:hidden}
+    .thumb img{width:100%; height:100%; object-fit:cover; display:block}
   </style>
 
   <script is:inline>
     const ids = ['wildlife','macro','night'];
     const tabs = Array.from(document.querySelectorAll('.tab'));
     const panels = ids.map(id => document.getElementById('panel-' + id));
+
     function activate(id){
       tabs.forEach(btn => {
         const on = btn.dataset.tab === id;
@@ -165,9 +126,19 @@ const tabs = [
       panels.forEach(p => p?.classList.toggle('is-active', p.id === 'panel-' + id));
       history.replaceState(null, '', '#' + id);
     }
-    const initHash = location.hash.replace('#','');
-    const initialCat = (initHash && initHash.split(':')[0]) || ids[0];
-    activate(ids.includes(initialCat) ? initialCat : ids[0]);
+
+    // Activación inicial según hash (#cat o #cat:slug)
+    const initHash = location.hash.replace('#','') || '';
+    const initCat = initHash.split(':')[0];
+    activate(ids.includes(initCat) ? initCat : ids[0]);
+
+    // Cambiar pestaña si cambia el hash (útil al abrir enlaces #cat:slug)
+    window.addEventListener('hashchange', () => {
+      const h = location.hash.replace('#','');
+      const cat = h.split(':')[0];
+      if (ids.includes(cat)) activate(cat);
+    });
+
     tabs.forEach(btn => btn.addEventListener('click', () => activate(btn.dataset.tab)));
   </script>
 </BaseLayout>

@@ -1,11 +1,11 @@
 ---
-title: "hielo"
+title: "Hielo"
 src: "/photos/ice.webp"
-alt: "Sympetrum fonscolombii al amanecer, posada sobre un junco"
+alt: "Pasadizo helado."
 w: 2560
 h: 1440
 date: 2025-09-01
 category: wildlife
-tags: [libélula, odonata, amanecer]
+tags: [invierno]
 featured: true
 ---

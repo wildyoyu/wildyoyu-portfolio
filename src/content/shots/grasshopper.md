@@ -1,7 +1,7 @@
 ---
 title: "Saltamontes común"
 src: "/photos/grasshopper.webp"
-alt: "Sympetrum fonscolombii al amanecer, posada sobre un junco"
+alt: "Saltamontes de huerta."
 w: 2560
 h: 1440
 date: 2025-09-01

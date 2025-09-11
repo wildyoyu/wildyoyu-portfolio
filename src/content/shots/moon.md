@@ -1,11 +1,11 @@
 ---
-title: "luna"
+title: "Luna"
 src: "/photos/moon.webp"
-alt: "Sympetrum fonscolombii al amanecer, posada sobre un junco"
+alt: "Luna vista desde teleobjetivo y trípode."
 w: 2560
 h: 1440
 date: 2025-09-01
-category: wildlife
-tags: [libélula, odonata, amanecer]
+category: night
+tags: [moon]
 featured: true
 ---

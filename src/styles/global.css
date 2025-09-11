@@ -123,3 +123,18 @@ a:hover { text-decoration: underline; }
 .parallax-card, .hero-visual { will-change: transform; }
 
 }
+/* --- FIX global: botones del visor redondos, blancos, con icono --- */
+:where(.ylb__btn,.cap-btn){
+  all: unset;
+  box-sizing: border-box;
+  width: 40px; height: 40px;
+  border-radius: 9999px !important;
+  background: #fff !important;
+  color: #111 !important;
+  border: 1px solid #e5e7eb !important;
+  display: grid; place-items: center;
+  cursor: pointer;
+}
+:where(.ylb__btn,.cap-btn) svg{ width:22px; height:22px; display:block; }
+:where(.ylb__btn--like,.cap-like).liked{ color:#e11d48 !important; }
+:where(.ylb__btn--like,.cap-like).liked svg{ fill: currentColor; }

@@ -1,11 +1,11 @@
 ---
-title: "Libélula al amanecer"
+title: "Full moon"
 src: "/photos/hero.webp"
-alt: "Sympetrum fonscolombii al amanecer, posada sobre un junco"
+alt: "Luna llena fotografiada con OM-5."
 w: 2560
 h: 1440
 date: 2025-09-01
-category: wildlife
-tags: [libélula, odonata, amanecer]
+category: night
+tags: [moon]
 featured: true
 ---

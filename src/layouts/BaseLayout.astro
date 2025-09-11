@@ -25,6 +25,7 @@ const jsonLd = {
   inLanguage: lang
 };
 ---
+<!doctype html>
 <html lang={lang} class="h-full">
   <head>
     <meta charset="utf-8" />
@@ -37,7 +38,7 @@ const jsonLd = {
     <meta name="theme-color" content="#0b0d10" />
     {noindex && <meta name="robots" content="noindex,nofollow" />}
 
-    <!-- Open Graph / Twitter -->
+    {/* Open Graph / Twitter */}
     <meta property="og:type" content="website" />
     {canonical && <meta property="og:url" content={canonical} />}
     <meta property="og:title" content={title} />
@@ -52,19 +53,16 @@ const jsonLd = {
     <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
     <meta name="color-scheme" content="dark light" />
   </head>
-<body>
-  <slot />
-  <Lightbox />
-</body>
 
   <body class="min-h-screen">
     <NavBar />
-    <slot />
+    <main><slot /></main>
     <Footer />
 
+    {/* Lightbox SOLO aquí para evitar duplicados */}
     <Lightbox />
-    <script type="module">
-      import '../scripts/scroll-fallback.ts';
-    </script>
+
+    {/* Carga segura del módulo con Astro.resolve (evita rutas rotas) */}
+    <script src="/scripts/scroll-fallback.js" defer></script>
   </body>
 </html>
