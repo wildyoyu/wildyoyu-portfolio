@@ -24,7 +24,6 @@ const tabs = [
 <BaseLayout title="Galería — Wildyoyu" description="Explora por secciones: Wildlife, Macro y Night">
   <section class="section">
     <div class="container gallery-root">
-      <!-- Pestañas -->
       <div class="tabs" role="tablist" aria-label="Secciones de galería">
         {tabs.map((t, i) => (
           <button
@@ -41,57 +40,74 @@ const tabs = [
         ))}
       </div>
 
-      <!-- Paneles -->
       <div class="panels">
-        {tabs.map((t, i) => (
-          <div id={`panel-${t.id}`} class={`panel${i===0 ? ' is-active' : ''}`} role="tabpanel" aria-labelledby={`tab-${t.id}`}>
-            {t.items.length === 0 ? (
-              <p class="lead">Aún no hay fotos en {t.title.toLowerCase()}.</p>
-            ) : (
-              <div class="ig-grid">
-                {t.items.map((it) => {
-                  const hasCarousel = it.srcs && it.srcs.length > 0;
-                  const list = hasCarousel ? JSON.stringify([it.src, ...it.srcs]) : undefined;
-                  return (
-                    <article class="tile">
-                      <button
-                        class="lb-trigger"
-                        type="button"
-                        aria-label={`Abrir ${it.title} a pantalla completa`}
-                        data-src={it.src}
-                        data-srcs={list}
-                        data-alt={it.alt}
-                        data-title={it.title}
-                        title={it.title}
-                      >
-                        <div class="thumb">
-                          <img
-                            src={it.src}
-                            alt={it.alt}
-                            loading="lazy"
-                            decoding="async"
-                            width={it.w}
-                            height={it.h}
-                            sizes="(max-width:680px) 33vw, (max-width:1024px) 25vw, 18vw"
-                          />
-                        </div>
+        {tabs.map((t, i) => {
+          // Serializamos items mínimos para el visor (toda la categoría):
+          const itemsForViewer = t.items.map(it => ({
+            src: it.src,
+            alt: it.alt,
+            title: it.title,
+            slug: it.slug
+          }));
+          return (
+            <div
+              id={`panel-${t.id}`}
+              class={`panel${i===0 ? ' is-active' : ''}`}
+              role="tabpanel"
+              aria-labelledby={`tab-${t.id}`}
+              data-cat={t.id}
+              data-items={JSON.stringify(itemsForViewer)}
+            >
+              {t.items.length === 0 ? (
+                <p class="lead">Aún no hay fotos en {t.title.toLowerCase()}.</p>
+              ) : (
+                <div class="ig-grid">
+                  {t.items.map((it, idx) => {
+                    const hasCarousel = it.srcs && it.srcs.length > 0;
+                    const list = hasCarousel ? JSON.stringify([it.src, ...it.srcs]) : undefined;
+                    return (
+                      <article class="tile">
+                        <button
+                          class="lb-trigger"
+                          type="button"
+                          aria-label={`Abrir ${it.title} a pantalla completa`}
+                          data-src={it.src}
+                          data-srcs={list}
+                          data-alt={it.alt}
+                          data-title={it.title}
+                          data-idx={idx}
+                          data-slug={it.slug}
+                          title={it.title}
+                        >
+                          <div class="thumb">
+                            <img
+                              src={it.src}
+                              alt={it.alt}
+                              loading="lazy"
+                              decoding="async"
+                              width={it.w}
+                              height={it.h}
+                              sizes="(max-width:680px) 33vw, (max-width:1024px) 25vw, 18vw"
+                            />
+                          </div>
 
-                        {hasCarousel ? (
-                          <span class="badge-multi" aria-label="Carrusel" title="Carrusel">
-                            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                              <rect x="5" y="5" width="10" height="10" rx="2" fill="currentColor" opacity=".85"/>
-                              <rect x="9" y="9" width="10" height="10" rx="2" fill="currentColor"/>
-                            </svg>
-                          </span>
-                        ) : null}
-                      </button>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        ))}
+                          {hasCarousel ? (
+                            <span class="badge-multi" aria-label="Carrusel" title="Carrusel">
+                              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                                <rect x="5" y="5" width="10" height="10" rx="2" fill="currentColor" opacity=".85"/>
+                                <rect x="9" y="9" width="10" height="10" rx="2" fill="currentColor"/>
+                              </svg>
+                            </span>
+                          ) : null}
+                        </button>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   </section>
@@ -99,7 +115,6 @@ const tabs = [
   <style>
     .gallery-root{ --gap: 4px; }
 
-    /* Tabs */
     .tabs{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
     .tab{
       cursor:pointer; padding:.6rem .9rem; border-radius:999px; font-weight:700;
@@ -114,59 +129,27 @@ const tabs = [
     .panel.is-active{ display:block; }
     @keyframes fade{ from{opacity:.7; transform:translateY(-4px);} to{opacity:1; transform:none;} }
 
-    /* ===========================
-       REJILLA ESTILO INSTAGRAM
-       - Móvil: 3 columnas, miniaturas CUADRADAS (1:1).
-       - Tablet: 4 columnas, CUADRADAS.
-       - Desktop: 5 columnas, 4:3 para algo más panorámico.
-       =========================== */
-
-    .ig-grid{
-      display:grid;
-      gap: var(--gap);
-      align-items:start;
-      contain: layout paint;
-    }
-
-    /* Columnas por breakpoint */
-    @media (max-width: 680px){
-      .ig-grid{ grid-template-columns: repeat(3, 1fr); }
-    }
-    @media (min-width: 681px) and (max-width: 1024px){
-      .ig-grid{ grid-template-columns: repeat(4, 1fr); }
-    }
-    @media (min-width: 1025px){
-      .ig-grid{ grid-template-columns: repeat(5, 1fr); }
-    }
+    /* Rejilla estilo IG, responsive */
+    .ig-grid{ display:grid; gap: var(--gap); align-items:start; contain: layout paint; }
+    @media (max-width: 680px){ .ig-grid{ grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 681px) and (max-width: 1024px){ .ig-grid{ grid-template-columns: repeat(4, 1fr); } }
+    @media (min-width: 1025px){ .ig-grid{ grid-template-columns: repeat(5, 1fr); } }
 
     .tile{ position:relative; overflow:hidden; border-radius: 6px; background: rgba(255,255,255,.03); }
     .tile .lb-trigger{ display:block; position:relative; padding:0; margin:0; border:0; background:none; cursor:zoom-in; width:100%; }
 
-    /* Miniatura responsive:
-       - Móvil/Tablet: cuadrada 1:1 (cropea al centro) → look Instagram.
-       - Desktop: 4/3 (ligero recorte horizontal para ritmo visual).
-    */
-    .thumb{ width:100%; overflow:hidden; border-radius: 6px; }
+    /* Miniaturas: cuadradas 1:1 en móvil/tablet; 4:3 en desktop (puedes dejarlas 1:1 en todo) */
+    .thumb{ width:100%; overflow:hidden; border-radius:6px; }
     .thumb img{ width:100%; height:100%; display:block; object-fit: cover; object-position: center; }
+    @media (max-width: 1024px){ .thumb{ aspect-ratio: 1 / 1; } }
+    @media (min-width: 1025px){ .thumb{ aspect-ratio: 4 / 3; } }
 
-    /* Aspect ratios por breakpoint */
-    @media (max-width: 1024px){
-      .thumb{ aspect-ratio: 1 / 1; }
-    }
-    @media (min-width: 1025px){
-      .thumb{ aspect-ratio: 4 / 3; }
-    }
-
-    /* Indicador carrusel tipo Instagram (dos cuadrados solapados) */
     .badge-multi{
       position:absolute; top:8px; right:8px;
       display:inline-grid; place-items:center;
       width:26px; height:26px; border-radius:999px;
-      background: rgba(0,0,0,.45); color:#fff;
-      backdrop-filter: blur(6px);
+      background: rgba(0,0,0,.45); color:#fff; backdrop-filter: blur(6px);
     }
-
-    .lead{ opacity:.9; }
   </style>
 
   <script is:inline>
@@ -183,7 +166,8 @@ const tabs = [
       history.replaceState(null, '', '#' + id);
     }
     const initHash = location.hash.replace('#','');
-    activate(ids.includes(initHash) ? initHash : ids[0]);
+    const initialCat = (initHash && initHash.split(':')[0]) || ids[0];
+    activate(ids.includes(initialCat) ? initialCat : ids[0]);
     tabs.forEach(btn => btn.addEventListener('click', () => activate(btn.dataset.tab)));
   </script>
 </BaseLayout>

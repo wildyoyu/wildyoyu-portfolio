@@ -1,260 +1,283 @@
+---
+/**
+ * Visor vertical tipo Instagram (móvil-first):
+ * - Abre como "hoja" a pantalla completa.
+ * - Desliza ARRIBA/ABAJO para navegar por TODA la categoría sin cerrar.
+ * - SIN flechas izquierda/derecha (todo es swipe/scroll vertical).
+ * - Botones: "Ajustar/1:1" y "Compartir" (Web Share API o copia enlace).
+ * - En desktop se centra; en móvil ocupa 100dvh. is:inline => no se hoistea.
+ */
+---
+<dialog id="sheetviewer" class="sv" aria-label="Visor de imágenes">
+  <div class="sv-backdrop" part="backdrop"></div>
 
-<dialog id="lightbox" class="lb" aria-label="Visor de imágenes">
-  <div class="lb-backdrop" part="backdrop"></div>
+  <div class="sv-sheet" role="document" aria-live="polite">
+    <header class="sv-top">
+      <button class="sv-close" aria-label="Cerrar" title="Cerrar">×</button>
+      <div class="spacer"></div>
+      <button class="sv-fit" aria-label="Cambiar tamaño" title="Ajustar / 1:1">Ajustar</button>
+      <button class="sv-share" aria-label="Compartir" title="Compartir">↗</button>
+    </header>
 
-  <div class="lb-stage" role="document" aria-live="polite">
-    <div class="lb-top">
-      <button class="lb-close" aria-label="Cerrar" title="Cerrar (Esc)">×</button>
-      <button class="lb-mode" aria-label="Cambiar tamaño" title="Ajustar / 1:1">1:1</button>
-      <a class="lb-open" href="#" target="_blank" rel="noopener" aria-label="Abrir original" title="Abrir original (↗)">↗</a>
-    </div>
-
-    <button class="lb-prev" aria-label="Anterior" title="Anterior (←)">‹</button>
-
-    <figure class="lb-figure">
-      <img id="lb-img" alt="" decoding="async" />
-      <figcaption id="lb-cap"></figcaption>
-    </figure>
-
-    <button class="lb-next" aria-label="Siguiente" title="Siguiente (→)">›</button>
+    <!-- Carril vertical de diapositivas (una por foto) -->
+    <div class="sv-reel" tabindex="0" aria-live="polite"></div>
   </div>
 </dialog>
 
 <style>
-  .lb { inset:0; border:0; padding:0; background:transparent; }
-  .lb[open]{ display:grid; place-items:center; }
-  .lb::backdrop{ background:rgba(0,0,0,.7); }
-  .lb-backdrop{ position:fixed; inset:0; }
+  .sv { inset:0; border:0; padding:0; background:transparent; }
+  .sv[open]{ display:grid; place-items:center; }
+  .sv::backdrop{ background:rgba(0,0,0,.7); }
+  .sv-backdrop{ position:fixed; inset:0; }
 
-  .lb-stage{
+  .sv-sheet{
     position:relative;
-    width:min(96vw,1400px);
-    height:min(92vh,900px);
-    display:grid; grid-template-columns:56px 1fr 56px; align-items:center;
-    background:rgba(12,14,16,.85); backdrop-filter:blur(6px);
-    border-radius:18px; outline:1px solid rgba(255,255,255,.08);
-    box-shadow:0 30px 100px rgba(0,0,0,.5); overflow:hidden;
-    touch-action:pan-y;
+    width:min(96vw, 1180px);
+    height:min(96vh, 900px);
+    background: rgba(12,14,16,.92);
+    backdrop-filter: blur(6px);
+    border-radius: 18px;
+    outline: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 30px 100px rgba(0,0,0,.5);
+    overflow: hidden;
+    display:grid; grid-template-rows: auto 1fr;
+    touch-action: pan-y;
   }
-  @media (max-width:768px){
-    .lb-stage{ width:100vw; height:100dvh; border-radius:0; }
-  }
-
-  .lb-top{ position:absolute; inset:10px 10px auto auto; z-index:3; display:flex; gap:8px; }
-  .lb-close,.lb-mode,.lb-open{
-    width:42px; height:42px; border-radius:999px;
-    border:1px solid rgba(255,255,255,.2);
-    background:rgba(0,0,0,.35); color:#fff; font-size:16px;
-    display:grid; place-items:center; cursor:pointer; text-decoration:none;
-    backdrop-filter:blur(6px);
+  @media (max-width: 768px){
+    .sv-sheet{ width:100vw; height:100dvh; border-radius: 0; }
   }
 
-  .lb-figure{
-    grid-column:2; margin:0; height:100%;
-    display:grid; grid-template-rows:1fr auto; align-items:center; gap:8px;
-    padding:clamp(8px,1.4vw,14px);
-    overflow:auto;                      /* 1:1 permite scroll */
-    overscroll-behavior:contain;
+  .sv-top{
+    display:flex; align-items:center; gap:8px;
+    padding:10px; position:relative; z-index:2;
+    background: linear-gradient(180deg, rgba(0,0,0,.35), transparent);
+  }
+  .sv-close, .sv-fit, .sv-share{
+    min-width:42px; height:42px; padding:0 12px;
+    border-radius: 999px; border:1px solid rgba(255,255,255,.2);
+    background: rgba(0,0,0,.35); color:#fff; cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center;
+    backdrop-filter: blur(6px); font-weight:700;
+  }
+  .spacer{ flex:1; }
+
+  /* Carril vertical "tipo stories feed" */
+  .sv-reel{
+    position:relative; height:100%;
+    overflow-y:auto; overflow-x:hidden;
+    scroll-snap-type: y mandatory;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+  .sv-slide{
+    position:relative;
+    min-height: 100%; /* ocupa todo el alto visible */
+    padding: clamp(10px, 2.2vw, 18px);
+    display:flex; align-items:center; justify-content:center;
+    scroll-snap-align: start;
   }
 
-  /* Modo 1:1 (original) — sin límites */
-  .lb.mode-original #lb-img{ width:auto; height:auto; max-width:none; max-height:none; }
-
-  /* Modo Ajustar — contenido encaja en visor; sin scroll en figure */
-  .lb.mode-fit .lb-figure{ overflow:hidden; }
-  .lb.mode-fit #lb-img{ max-width:100%; max-height:100%; }
-
-  #lb-img{
-    justify-self:center; display:block;
-    user-select:none; -webkit-user-drag:none;
-    transition:transform .25s ease, opacity .25s ease; will-change:transform;
+  /* Capción al pie (opcional) */
+  .sv-cap{
+    position:absolute; left:0; right:0; bottom:8px;
+    text-align:center; opacity:.85; padding: 0 12px;
   }
-  #lb-cap{ opacity:.85; text-align:center; min-height:1.2em; }
 
-  .lb-prev,.lb-next{
-    position:absolute; top:50%; transform:translateY(-50%);
-    width:42px; height:42px; border-radius:999px;
-    border:1px solid rgba(255,255,255,.2);
-    background:rgba(0,0,0,.35); color:#fff; font-size:22px;
-    display:grid; place-items:center; cursor:pointer; z-index:2;
-    backdrop-filter:blur(6px);
+  /* Modos de ajuste */
+  .sv.mode-fit .sv-img{ max-width: 100%; max-height: 100%; width:auto; height:auto; }
+  .sv.mode-original .sv-slide{ overflow:auto; } /* permite pan interno */
+  .sv.mode-original .sv-img{ max-width: none; max-height: none; width:auto; height:auto; }
+
+  .sv-img{
+    display:block; user-select:none; -webkit-user-drag:none;
+    transition: transform .25s ease, opacity .25s ease;
+    will-change: transform;
   }
-  .lb-prev{ left:10px; } .lb-next{ right:10px; }
-  .dragging #lb-img{ transition:none; }
+
+  /* Evita "pegotes" al arrastrar */
+  .dragging .sv-img{ transition: none; }
 </style>
 
 <script is:inline>
-  const dialog  = document.getElementById('lightbox');
-  if (!dialog) { console.warn('[Lightbox] No se encontró el dialog.'); }
+  const dialog  = document.getElementById('sheetviewer');
+  if (!dialog) { console.warn('[SheetViewer] No se encontró el dialog.'); }
   else {
-    const stage   = dialog.querySelector('.lb-stage');
-    const figure  = dialog.querySelector('.lb-figure');
-    const img     = document.getElementById('lb-img');
-    const cap     = document.getElementById('lb-cap');
-    const prevBtn = dialog.querySelector('.lb-prev');
-    const nextBtn = dialog.querySelector('.lb-next');
-    const closeBtn= dialog.querySelector('.lb-close');
-    const modeBtn = dialog.querySelector('.lb-mode');
-    const openA   = dialog.querySelector('.lb-open');
+    const sheet   = dialog.querySelector('.sv-sheet');
+    const reel    = dialog.querySelector('.sv-reel');
+    const btnClose= dialog.querySelector('.sv-close');
+    const btnFit  = dialog.querySelector('.sv-fit');
+    const btnShare= dialog.querySelector('.sv-share');
 
-    let items = [];      // [{src,alt,title}]
+    let items = [];     // [{src, alt, title, slug}]
     let current = 0;
-    let lastTrigger = null;
-    let mode = 'original'; // 'original' | 'fit'
-    let lastTap = 0;
+    let activeCat = ''; // 'wildlife' | 'macro' | 'night'
+    let mode = 'fit';   // 'fit' (ajustar) | 'original' (1:1)
+    let holdTimer = null;
 
     const isMobile = () => matchMedia('(max-width: 768px)').matches;
 
     function applyMode(){
+      dialog.classList.toggle('mode-fit', mode === 'fit');
       dialog.classList.toggle('mode-original', mode === 'original');
-      dialog.classList.toggle('mode-fit',      mode === 'fit');
-      modeBtn.textContent = (mode === 'original') ? '1:1' : '↔︎';
-      modeBtn.title = (mode === 'original') ? 'Mostrando tamaño original' : 'Ajustado a visor';
+      btnFit.textContent = (mode === 'fit') ? 'Ajustar' : '1:1';
+      btnFit.title = (mode === 'fit') ? 'Ajustado a visor' : 'Tamaño original';
     }
-    function toggleMode(){ mode = (mode === 'original') ? 'fit' : 'original'; applyMode(); }
 
-    modeBtn?.addEventListener('click', toggleMode);
+    function renderSlides(){
+      reel.innerHTML = items.map((it, idx) => `
+        <section class="sv-slide" data-idx="${idx}">
+          <img class="sv-img" src="${it.src}" alt="${it.alt || ''}" />
+          ${it.title ? `<div class="sv-cap">${it.title}</div>` : ''}
+        </section>
+      `).join('');
+    }
 
-    function show(idx, opts = { animateFrom: 0 }) {
+    function scrollToIndex(idx, behavior = 'instant'){
+      current = Math.max(0, Math.min(items.length - 1, idx));
+      const slideH = sheet.clientHeight - (dialog.querySelector('.sv-top')?.clientHeight || 0);
+      reel.scrollTo({ top: current * slideH, behavior });
+      updateHash();
+    }
+
+    function updateCurrentOnScroll(){
+      const slideH = sheet.clientHeight - (dialog.querySelector('.sv-top')?.clientHeight || 0);
+      const idx = Math.round(reel.scrollTop / Math.max(1, slideH));
+      if (idx !== current){ current = idx; updateHash(false); }
+    }
+
+    function openFromTrigger(btn){
+      // Encuentra el panel (categoría) y carga su dataset.items
+      const panel = btn.closest('.panel');
+      if (panel?.dataset.items) {
+        try {
+          items = JSON.parse(panel.dataset.items);
+        } catch {
+          items = [];
+        }
+        activeCat = panel.dataset.cat || '';
+      } else {
+        // Fallback: solo esa imagen
+        items = [{ src: btn.dataset.src, alt: btn.dataset.alt || '', title: btn.dataset.title || '', slug: btn.dataset.slug || '' }];
+        activeCat = document.querySelector('.tab.is-active')?.dataset.tab || '';
+      }
       if (!items.length) return;
-      current = (idx + items.length) % items.length;
-      const it = items[current];
 
-      // actualizar enlace a original
-      openA.href = it.src;
+      // índice de la miniatura pulsada
+      const startIdx = Number(btn.dataset.idx ?? 0);
 
-      img.style.transition = 'transform .25s ease, opacity .25s ease';
-      if (opts.animateFrom) {
-        img.style.transform = `translateX(${opts.animateFrom}px)`;
-        img.style.opacity = 0.6;
-        requestAnimationFrame(() => {
-          img.src = it.src; img.alt = it.alt || '';
-          cap.textContent = it.alt || it.title || '';
-          requestAnimationFrame(() => {
-            img.style.transform = 'translateX(0)'; img.style.opacity = 1;
-          });
-        });
-      } else {
-        img.src = it.src; img.alt = it.alt || '';
-        cap.textContent = it.alt || it.title || '';
-        img.style.transform = 'translateX(0)'; img.style.opacity = 1;
-      }
-
-      if (items.length > 1) { const pre = new Image(); pre.decoding="async"; pre.src = items[(current+1)%items.length].src; }
-    }
-
-    function openFromTrigger(btn) {
-      lastTrigger = btn;
-
-      const listAttr = btn.dataset.srcs;
-      if (listAttr) {
-        try { const arr = JSON.parse(listAttr); items = arr.map(s => ({ src:s, alt:btn.dataset.alt||'', title:btn.dataset.title||'' })); }
-        catch { items = [{ src: btn.dataset.src, alt: btn.dataset.alt||'', title: btn.dataset.title||'' }]; }
-      } else {
-        items = [{ src: btn.dataset.src, alt: btn.dataset.alt||'', title: btn.dataset.title||'' }];
-      }
-
-      // Móvil → fit; Desktop → original
-      mode = isMobile() ? 'fit' : 'original';
+      // Móvil abre en "fit", desktop puede abrir en original si quieres
+      mode = isMobile() ? 'fit' : 'fit'; // cambia a 'original' para desktop si lo prefieres
       applyMode();
 
-      show(0);
-      if ('showModal' in dialog) dialog.showModal();
-      else { dialog.setAttribute('open',''); document.documentElement.style.overflow='hidden'; }
+      renderSlides();
+      if ('showModal' in dialog) dialog.showModal(); else { dialog.setAttribute('open',''); }
+      document.documentElement.style.overflow = 'hidden';
+
+      // Posiciona en la slide correcta
+      requestAnimationFrame(() => scrollToIndex(startIdx, 'instant'));
     }
 
-    function closeDialog() {
+    async function shareCurrent(){
+      const it = items[current] || {};
+      // Enlace canónico: /gallery#<cat>:<slug|idx>
+      const slugOrIdx = it.slug || String(current);
+      const url = new URL(location.href);
+      url.hash = `${activeCat}:${slugOrIdx}`;
+      const shareUrl = url.toString();
+
+      try{
+        if (navigator.share){
+          await navigator.share({ title: it.title || 'Foto', url: shareUrl });
+        } else {
+          await navigator.clipboard.writeText(shareUrl);
+          alert('Enlace copiado al portapapeles');
+        }
+      }catch{}
+    }
+
+    function close(){
       if (dialog.open && 'close' in dialog) dialog.close();
       dialog.removeAttribute('open');
-      document.documentElement.style.overflow='';
-      lastTrigger?.focus();
+      document.documentElement.style.overflow = '';
     }
 
-    function next() { if (items.length > 1) show(current + 1, { animateFrom: (mode==='fit'?60:0) }); }
-    function prev() { if (items.length > 1) show(current - 1, { animateFrom: (mode==='fit'?-60:0) }); }
+    function updateHash(push = true){
+      if (!activeCat) return;
+      const it = items[current] || {};
+      const slugOrIdx = it.slug || String(current);
+      const newHash = `${activeCat}:${slugOrIdx}`;
+      if (push) history.replaceState(null, '', '#' + newHash);
+      else if (location.hash.replace('#','') !== newHash) history.replaceState(null, '', '#' + newHash);
+    }
 
-    // Delegación: abrir desde miniatura .lb-trigger
+    // Delegación: click y "long press" en miniaturas .lb-trigger
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('.lb-trigger');
       if (!btn) return;
       e.preventDefault();
       openFromTrigger(btn);
     });
-
-    // Doble-tap en la imagen para alternar modo
-    img.addEventListener('click', () => {
-      const now = Date.now();
-      if (now - lastTap < 300) toggleMode();
-      lastTap = now;
+    document.addEventListener('pointerdown', (e) => {
+      const btn = e.target.closest('.lb-trigger');
+      if (!btn) return;
+      holdTimer = setTimeout(() => { openFromTrigger(btn); }, 400);
     });
+    document.addEventListener('pointerup',   () => { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } });
+    document.addEventListener('pointercancel',() => { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } });
 
-    // Botones / teclado
-    prevBtn?.addEventListener('click', prev);
-    nextBtn?.addEventListener('click', next);
-    closeBtn?.addEventListener('click', closeDialog);
+    // Botones
+    btnClose?.addEventListener('click', close);
+    btnFit?.addEventListener('click', () => { mode = (mode === 'fit') ? 'original' : 'fit'; applyMode(); });
+    btnShare?.addEventListener('click', shareCurrent);
 
-    document.addEventListener('keydown', (e) => {
-      if (!dialog.open) return;
-      if (e.key === 'Escape') closeDialog();
-      if (e.key === 'ArrowLeft') prev();
-      if (e.key === 'ArrowRight') next();
-      if (e.key.toLowerCase() === 'f') toggleMode();
-      if (e.key === '1') { mode='original'; applyMode(); }
-    });
+    // Scroll → actualizar índice
+    reel.addEventListener('scroll', () => { updateCurrentOnScroll(); }, { passive: true });
 
     // Clic fuera para cerrar
     dialog.addEventListener('click', (e) => {
-      const r = stage.getBoundingClientRect();
+      const r = sheet.getBoundingClientRect();
       const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
-      if (!inside) closeDialog();
+      if (!inside) close();
     });
 
-    // Gestos (solo en 'fit')
-    let dragging=false,startX=0,startY=0,lastX=0,lastT=0,dx=0,verticalAbort=false;
-    const THRESHOLD=80, VEL_MIN=0.4;
+    // Teclado
+    document.addEventListener('keydown', (e) => {
+      if (!dialog.open) return;
+      if (e.key === 'Escape') close();
+      if (e.key.toLowerCase() === 'f') { mode = (mode === 'fit') ? 'original' : 'fit'; applyMode(); }
+      if (e.key.toLowerCase() === 's') shareCurrent();
+      // Arriba/abajo para navegar (útil en desktop)
+      if (e.key === 'ArrowDown') scrollToIndex(current + 1, 'smooth');
+      if (e.key === 'ArrowUp')   scrollToIndex(current - 1, 'smooth');
+    });
 
-    function onPointerDown(ev){
-      if (!dialog.open || mode !== 'fit') return;
-      dragging = true; verticalAbort = false;
-      startX = lastX = ev.clientX; startY = ev.clientY; lastT = performance.now(); dx = 0;
-      dialog.classList.add('dragging');
+    // Abrir directo por URL: /gallery#macro:slug
+    function openFromHash(){
+      const h = location.hash.replace('#','');
+      if (!h) return;
+      const [cat, rest] = h.split(':');
+      if (!cat) return;
+      const panel = document.getElementById('panel-' + cat);
+      if (!panel || !panel.dataset.items) return;
+      activeCat = cat;
+      try { items = JSON.parse(panel.dataset.items); } catch { items = []; }
+      if (!items.length) return;
+
+      const idx = items.findIndex(x => (x.slug && rest && x.slug === rest));
+      const startIdx = idx >= 0 ? idx : Math.max(0, parseInt(rest, 10) || 0);
+
+      mode = isMobile() ? 'fit' : 'fit';
+      applyMode();
+      renderSlides();
+      if ('showModal' in dialog) dialog.showModal(); else { dialog.setAttribute('open',''); }
+      document.documentElement.style.overflow = 'hidden';
+      requestAnimationFrame(() => scrollToIndex(startIdx, 'instant'));
     }
-    function onPointerMove(ev){
-      if (!dragging) return;
-      const dy = ev.clientY - startY, adx = Math.abs(ev.clientX - startX), ady = Math.abs(dy);
-      if (!verticalAbort && ady > adx && ady > 10){ verticalAbort = true; return; }
-      if (verticalAbort) return;
-      dx = ev.clientX - startX; img.style.transform = `translateX(${dx}px)`; lastX = ev.clientX; lastT = performance.now();
-    }
-    function onPointerUp(ev, cancel=false){
-      if (!dragging) return;
-      dragging = false; dialog.classList.remove('dragging');
-      if (verticalAbort || cancel){ img.style.transform = 'translateX(0)'; return; }
-      const dt = Math.max(1, performance.now() - lastT), vx = (ev.clientX - lastX) / dt;
-      const goNext = dx < -THRESHOLD || vx < -VEL_MIN, goPrev = dx > THRESHOLD || vx > VEL_MIN;
-      if (goNext) next(); else if (goPrev) prev(); else img.style.transform = 'translateX(0)';
-    }
+    window.addEventListener('load', openFromHash);
 
-    stage.addEventListener('pointerdown', onPointerDown);
-    stage.addEventListener('pointermove', onPointerMove);
-    stage.addEventListener('pointerup', (e)=>onPointerUp(e,false));
-    stage.addEventListener('pointercancel', (e)=>onPointerUp(e,true));
-    stage.addEventListener('pointerleave',  (e)=>onPointerUp(e,true));
-
-    // Trackpad horizontal (solo en fit)
-    stage.addEventListener('wheel', (e) => {
-      if (!dialog.open || mode !== 'fit') return;
-      const horiz = Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 20;
-      if (!horiz) return;
-      e.preventDefault();
-      if (e.deltaX > 0) next(); else prev();
-    }, { passive: false });
-
-    // Liberar scroll siempre
-    function unlockScroll(){ document.documentElement.style.overflow=''; }
-    dialog.addEventListener('close', unlockScroll);
+    // Liberar scroll siempre al cerrar
+    dialog.addEventListener('close', () => { document.documentElement.style.overflow=''; });
     dialog.addEventListener('cancel', (e)=>{ e.preventDefault(); dialog.close(); });
-
-    console.info('[Lightbox] listo ✓ (móvil abre en fit; desktop en 1:1)');
+    console.info('[SheetViewer] listo ✓');
   }
 </script>
