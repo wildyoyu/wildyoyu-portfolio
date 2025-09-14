@@ -18,9 +18,9 @@ const index = all.map(e => ({
   </div>
 
   <!-- En lugar de JSON.parse en el DOM, colgamos un objeto global ya serializado -->
-  <script>
-    window.__SHOTS__ = /*json*/ {JSON.stringify(index).replace(/</g, '\\u003c')};
-  </script>
+ <script is:inline>
+  window.__SHOTS__ = /*json*/ {JSON.stringify(index).replace(/</g,'\\u003c')};
+</script>
 
   <style>
     .favs-grid{display:grid; gap:6px; grid-template-columns:repeat(3,1fr)}
