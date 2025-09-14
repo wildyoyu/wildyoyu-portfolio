@@ -51,7 +51,7 @@ const eventsJSON = JSON.stringify(astroEvents);
     </div>
   </div>
 
-  <script is:inline>
+  <script >
     window.__ASTRO_EVENTS__ = /*json*/ {eventsJSON.replace(/</g,'\\u003c')};
   </script>
 
