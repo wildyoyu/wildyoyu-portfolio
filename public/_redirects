@@ -1,0 +1,5 @@
+# fuerza https (apex)
+http://wildyoyu.com/*        https://wildyoyu.com/:splat  301!
+# fuerza https y quita www => apex
+http://www.wildyoyu.com/*    https://wildyoyu.com/:splat  301!
+https://www.wildyoyu.com/*   https://wildyoyu.com/:splat  301!
