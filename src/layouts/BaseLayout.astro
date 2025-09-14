@@ -26,7 +26,7 @@ const jsonLd = {
 };
 ---
 <!doctype html>
-<html lang={lang}>
+<html lang={lang} class="h-full">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -35,22 +35,34 @@ const jsonLd = {
 
     {canonical && <link rel="canonical" href={canonical} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <meta name="theme-color" content="#0f1f17" />
+    <meta name="theme-color" content="#0b0d10" />
     {noindex && <meta name="robots" content="noindex,nofollow" />}
 
+    {/* Open Graph / Twitter */}
     <meta property="og:type" content="website" />
     {canonical && <meta property="og:url" content={canonical} />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogAbs} />
+    <meta property="og:image:alt" content={description} />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogAbs} />
+
     <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+    <meta name="color-scheme" content="dark light" />
   </head>
-  <body>
+
+  <body class="min-h-screen">
     <NavBar />
     <main><slot /></main>
     <Footer />
+
+    {/* Lightbox SOLO aquí para evitar duplicados */}
     <Lightbox />
+
+    {/* Carga segura del módulo con Astro.resolve (evita rutas rotas) */}
     <script src="/scripts/scroll-fallback.js" defer></script>
   </body>
 </html>
