@@ -124,6 +124,24 @@
   height: auto;
   object-fit: contain;
 }
+/* Ajuste visual coherente con el tema */
+.ylb__sheet{ background:rgba(10,14,12,.94); border:1px solid var(--card-b) }
+.ylb__caption{
+  background:#fff !important; color:#111 !important; border:1px solid #e5e7eb !important;
+}
+.ylb__btn{
+  background:#fff; color:#111; border:1px solid #e5e7eb; border-radius:9999px;
+}
+
+/* Tamaño más contenido en ordenador */
+@media (min-width:1024px){
+  .ylb__sheet{ width: clamp(380px, 52vw, 900px); height: 78vh; }
+  .ylb__figure{ width: min(84%, 820px); }
+}
+
+/* Imágenes siempre completas (contain) */
+.ylb__single img,
+.ylb__himg img{ max-width:100%; max-height:100%; object-fit:contain }
 
 </style>
 
@@ -327,4 +345,6 @@
 
     console.info('[SheetViewer: pie blanco + carrusel horizontal + fit completo] listo ✓');
   }
+  
 </script>
+

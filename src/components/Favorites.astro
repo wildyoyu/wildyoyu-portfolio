@@ -14,25 +14,28 @@ const index = all.map(e => ({
   <div class="container">
     <h2 class="h2" style="margin-bottom:.6rem;">Favoritos de los Yoyus</h2>
     <p class="lead" id="favs-count" style="opacity:.85; margin:0 0 .8rem 0;">Aún no hay favoritos.</p>
+
     <div id="favs-grid" class="favs-grid"></div>
+
+    <!-- Aquí viaja el índice de fotos en un data-attribute (seguro para Astro/Vite) -->
+    <div id="favs-data" data-shots={JSON.stringify(index)} hidden></div>
   </div>
 
-  <!-- En lugar de JSON.parse en el DOM, colgamos un objeto global ya serializado -->
- <script is:inline>
-  window.__SHOTS__ = /*json*/ {JSON.stringify(index).replace(/</g,'\\u003c')};
-</script>
-
   <style>
-    .favs-grid{display:grid; gap:6px; grid-template-columns:repeat(3,1fr)}
+    .favs-grid{display:grid; gap:6px}
+    @media (max-width:680px){ .favs-grid{grid-template-columns:repeat(3,1fr)} }
     @media (min-width:681px){ .favs-grid{grid-template-columns:repeat(6,1fr)} }
-    @media (min-width:1025px){ .favs-grid{grid-template-columns:repeat(8,1fr)} }
-    .tile{position:relative; overflow:hidden; border-radius:6px; background:rgba(255,255,255,.03)}
-    .tile img{width:100%; height:100%; display:block; object-fit:cover; aspect-ratio:1/1}
+    @media (min-width:1200px){ .favs-grid{grid-template-columns:repeat(8,1fr)} }
+    .tile{position:relative; overflow:hidden; border-radius:8px; background:rgba(255,255,255,.035); border:1px solid rgba(255,255,255,.08)}
+    .tile img{width:100%; height:100%; object-fit:cover; display:block; aspect-ratio:1/1}
     .tile a{display:block; width:100%; height:100%}
   </style>
 
   <script is:inline>
-    const idx = Array.isArray(window.__SHOTS__) ? window.__SHOTS__ : [];
+    const dataEl = document.getElementById('favs-data');
+    let idx = [];
+    try { idx = JSON.parse(dataEl?.dataset.shots || '[]'); } catch { idx = []; }
+
     const bySlug = new Map(idx.map(x => [x.slug, x]));
     const grid = document.getElementById('favs-grid');
     const counter = document.getElementById('favs-count');
@@ -54,7 +57,6 @@ const index = all.map(e => ({
     }
 
     renderFavs();
-    // Se actualiza cuando das ❤️ en el visor y cuando cambia LS en otra pestaña
     window.addEventListener('yoyu:favs-changed', renderFavs);
     window.addEventListener('storage', (e)=>{ if (e.key==='yoyu_favs') renderFavs(); });
   </script>

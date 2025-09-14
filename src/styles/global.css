@@ -1,147 +1,74 @@
-/* Fuentes variables autoalojadas */
-@import "@fontsource-variable/inter/index.css";
-@import "@fontsource-variable/newsreader/index.css";
+/* ——— Fuente ——— */
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/newsreader";
 
-/* Reset & base */
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
-img, picture, video, canvas { display:block; max-width:100%; }
-
+/* ——— Tokens del tema ——— */
 :root{
-  --bg: #0a1914;   /* verde oscuro, sin imágenes */
-  --fg: #e8ecef;
-  --muted: #9aa4ad;
-  --accent: #89c2ff;
-  --maxw: 1200px; --radius: 18px; --shadow: 0 10px 30px rgba(0,0,0,.25);
-  --title: clamp(2rem, 6vw, 4.5rem);
-  --lead: clamp(1rem, 2.2vw, 1.25rem);
+  --bg: #0f1f17;              /* verde oscuro */
+  --bg-2: rgba(255,255,255,.035);
+  --card-b: rgba(255,255,255,.08);
+  --fg: #eaf7f1;
+  --fg-muted: rgba(234,247,241,.78);
+  --ring: rgba(134,239,172,.55); /* verde suave para focus */
+  --brand: #86efac;
 }
-html { background: var(--bg); color: var(--fg); }
-/* --- Scroll sólido y suave en todo el sitio --- */
-:root { --nav-h: 60px; }              /* altura aprox. de tu navbar */
-html{
-  scroll-behavior: smooth;             /* anclas suaves */
-  scroll-padding-top: calc(var(--nav-h) + 12px); /* que no tape el navbar */
-  overflow-y: auto;                     /* asegura barra vertical siempre */
-}
+
+/* ——— Reset suave ——— */
+*{box-sizing:border-box}
+html,body{height:100%}
+html{color-scheme:dark}
 body{
-  min-height: 100dvh;
-  overscroll-behavior-y: contain;       /* evita “rebote”/arrastre accidental */
+  margin:0; background:var(--bg); color:var(--fg);
+  font-family:"InterVariable", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  line-height:1.5;
+}
+img,svg,video{max-width:100%; height:auto}
+a{color:inherit; text-decoration:none}
+a:hover{opacity:.92}
+
+/* ——— Tipos ——— */
+.h1{font-size:clamp(28px,4vw,44px); font-weight:900; letter-spacing:.2px}
+.h2{font-size:clamp(20px,2.6vw,28px); font-weight:900}
+.lead{opacity:.85}
+
+/* ——— Layout ——— */
+.container{
+  width:100%; max-width:1200px;
+  margin-inline:auto;
+  padding-inline:clamp(16px,3vw,28px);
+}
+.section{padding-block:clamp(28px,6vw,56px)}
+.card{
+  background:var(--bg-2); border:1px solid var(--card-b); border-radius:14px;
 }
 
-
-@media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; }
-}
-
-html { color-scheme: dark; background: var(--bg); color: var(--fg);
-  font: 400 16px/1.6 InterVariable, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-}
-.h1 { font-family: "Newsreader Variable", InterVariable, serif; font-variation-settings:"opsz" 32; }
-a { color: var(--fg); text-decoration: none; }
-a:hover { text-decoration: underline; }
-
-.container { width: min(100% - 2rem, var(--maxw)); margin-inline: auto; }
-.section { padding-block: clamp(48px, 8vw, 120px); }
-.center { display:grid; place-items:center; }
-.shadow { box-shadow: var(--shadow); border-radius: var(--radius); }
-
-/* --- Scroll-driven CSS (nativo) --- */
-.hero-visual{
-  view-timeline-name: --hero; view-timeline-axis: block;
-  animation-timeline: --hero; animation-name: hero-zoom;
-  animation-range: entry 0% cover 150%; animation-fill-mode: both;
-  transform-origin: center center;
-}
-@keyframes hero-zoom{
-  from { transform: scale(0.90) translateY(10vh); opacity: .72; }
-  to   { transform: scale(1.30) translateY(-6vh); opacity: 1; }
-}
-
-/* Sticky wrapper tipo Apple */
-.sticky-wrap { position: relative; height: 200svh; }
-.sticky { position: sticky; top: 0; height: 100svh; display:grid; place-items:center; }
-
-/* Parallax por tarjeta */
-.parallax-card{
-  view-timeline-name: --card; view-timeline-axis: block;
-  animation-timeline: --card; animation-name: parallax-rise;
-  animation-range: entry 0% cover 80%; animation-fill-mode: both;
-  transform: translateY(12vh) scale(0.96); opacity: .68;
-  overflow: clip; border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-  outline: 1px solid rgba(255,255,255,.06);
-}
-@keyframes parallax-rise{
-  to { transform: translateY(-6vh) scale(1.06); opacity: 1; }
-}
-
-/* --- Botones reutilizables --- */
+/* ——— Botones ——— */
 .btn{
-  display:inline-flex; align-items:center; gap:10px;
-  padding: .85rem 1.2rem; border-radius: 999px;
-  font-weight: 800; letter-spacing:.2px; text-decoration:none;
-  border:1px solid rgba(255,255,255,.14);
-  transition: transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease, color .15s ease;
-  box-shadow: 0 6px 18px rgba(0,0,0,.18);
-  will-change: transform;
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:.4rem; padding:.6rem 1rem; border-radius:999px;
+  border:1px solid var(--card-b); background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  font-weight:800; cursor:pointer;
 }
-.btn:focus-visible{ outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 60%, transparent); }
+.btn:hover{transform:translateY(-1px)}
+.btn:focus-visible{outline:2px solid var(--ring); outline-offset:2px}
 
-.btn-primary{
-  background: var(--fg);
-  color: var(--bg);
-  border-color: transparent;
+/* ——— Píldoras/Tabs ——— */
+.tabs{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px}
+.tab{
+  padding:.55rem .9rem; border-radius:999px;
+  border:1px solid var(--card-b); background:var(--bg-2); font-weight:800;
 }
-.btn-primary:hover{ transform: translateY(-1px); }
-.btn-primary:active{ transform: translateY(0); box-shadow: none; }
+.tab.is-active{background:var(--fg); color:var(--bg); border-color:transparent}
 
-.btn-outline{
-  background: transparent;
-  color: var(--fg);
-  border-color: rgba(255,255,255,.32);
-}
-.btn-outline:hover{
-  background: color-mix(in oklab, var(--fg) 10%, transparent);
-  transform: translateY(-1px);
-}
+/* ——— Rejillas ——— */
+.ig-grid{display:grid; gap:6px}
+@media (max-width:680px){ .ig-grid{grid-template-columns:repeat(3,1fr)} }
+@media (min-width:681px) and (max-width:1024px){ .ig-grid{grid-template-columns:repeat(4,1fr)} }
+@media (min-width:1025px){ .ig-grid{grid-template-columns:repeat(5,1fr)} }
+.tile{position:relative; overflow:hidden; border-radius:8px; background:var(--bg-2); border:1px solid var(--card-b)}
+.tile .thumb{width:100%; aspect-ratio:1/1; overflow:hidden}
+.tile img{width:100%; height:100%; object-fit:cover; display:block}
 
-.btn-xl{ padding: 1rem 1.3rem; font-size: clamp(1rem, 2.2vw, 1.1rem); }
-
-.btn .i{ width: 1.15em; height: 1.15em; }
-.cta-wrap{ margin-top: 1.2rem; display:flex; justify-content:center; }
-/* Iconos en botones: tamaño relativo al texto */
-.btn svg, .btn .i { width: 1.05em; height: 1.05em; flex-shrink: 0; }
-
-/* Botón pequeño para redes */
-.btn-sm { padding: .6rem .9rem; font-weight: 700; font-size: .95rem; }
-.ig-grid{
-  display:grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-  /* Suaviza las transformaciones con aceleración */
-.parallax-card, .hero-visual { will-change: transform; }
-
-}
-/* --- FIX global: botones del visor redondos, blancos, con icono --- */
-:where(.ylb__btn,.cap-btn){
-  all: unset;
-  box-sizing: border-box;
-  width: 40px; height: 40px;
-  border-radius: 9999px !important;
-  background: #fff !important;
-  color: #111 !important;
-  border: 1px solid #e5e7eb !important;
-  display: grid; place-items: center;
-  cursor: pointer;
-}
-:where(.ylb__btn,.cap-btn) svg{ width:22px; height:22px; display:block; }
-:where(.ylb__btn--like,.cap-like).liked{ color:#e11d48 !important; }
-:where(.ylb__btn--like,.cap-like).liked svg{ fill: currentColor; }
-.ylb__caption, .ylb__btn, .ylb__btn * { pointer-events: auto !important; }
-@media (min-width: 1024px){
-  .ylb__sheet{ width: clamp(360px, 54vw, 880px); height: 78vh; }
-  .ylb__figure{ width: min(80%, 760px); }
-}
-.ylb__single img,
-.ylb__himg img{ max-width:100%; max-height:100%; object-fit:contain; }
+/* ——— Utilidades ——— */
+.m-0{margin:0} .mt-1{margin-top:.25rem} .mt-2{margin-top:.5rem} .mt-3{margin-top:.75rem}
+.center{display:grid; place-items:center}
