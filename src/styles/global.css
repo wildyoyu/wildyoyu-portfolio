@@ -138,3 +138,10 @@ a:hover { text-decoration: underline; }
 :where(.ylb__btn,.cap-btn) svg{ width:22px; height:22px; display:block; }
 :where(.ylb__btn--like,.cap-like).liked{ color:#e11d48 !important; }
 :where(.ylb__btn--like,.cap-like).liked svg{ fill: currentColor; }
+.ylb__caption, .ylb__btn, .ylb__btn * { pointer-events: auto !important; }
+@media (min-width: 1024px){
+  .ylb__sheet{ width: clamp(360px, 54vw, 880px); height: 78vh; }
+  .ylb__figure{ width: min(80%, 760px); }
+}
+.ylb__single img,
+.ylb__himg img{ max-width:100%; max-height:100%; object-fit:contain; }

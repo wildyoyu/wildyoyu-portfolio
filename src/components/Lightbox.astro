@@ -281,6 +281,19 @@
       if (e.target.closest('.cap-like')){ toggleLike(slug); syncLikeState(); return; }
       if (e.target.closest('.cap-share')){ e.preventDefault(); shareCurrent(); return; }
     });
+    
+  window.addEventListener('click', (e) => {
+    if (!dlg.open) return;
+    const like = e.target.closest?.('.ylb__btn--like');
+    const share = e.target.closest?.('.ylb__btn--share');
+    if (!like && !share) return;
+    e.preventDefault();
+    const slide = e.target.closest('.ylb__slide');
+    const slug = slide?.dataset.slug || '';
+    if (like){ toggleLike(slug); syncLike(); }
+    if (share){ shareCurrent(); }
+  }, { capture:true });
+
     reel.addEventListener('scroll', updateCurrentOnScroll, { passive:true });
     btnClose?.addEventListener('click', close);
     dialog.addEventListener('click', (e) => {
