@@ -1,7 +1,7 @@
 ---
 title: "Dragon Fly"
 src: "/photos/dragonfly1.webp"
-srcs: ["/public/photos/dragonfly2.webp","/public/photos/dragonfly3.webp","/public/photos/dragonfly4.webp"]
+srcs: ["/photos/dragonfly2.webp","/photos/dragonfly3.webp","/photos/dragonfly4.webp"]
 alt: "Libélula ibérica en temporada estival."
 w: 2560
 h: 1440

@@ -107,6 +107,24 @@
   .cap-btn svg{ width:22px; height:22px; display:block; }
   .cap-like.liked{ color:#e11d48 !important; }
   .cap-like.liked svg{ fill: currentColor; }
+  /* === Ajuste tamaño en escritorio: visor más estrecho e imagen siempre contenida === */
+@media (min-width: 1024px){
+  /* Haz el modal más estrecho en desktop */
+  .ylb__sheet{ width: clamp(360px, 56vw, 920px); height: 82vh; }
+  /* Contenedor de la figura algo más estrecho */
+  .ylb__figure{ width: min(82%, 820px); }
+}
+
+/* Imagen única y las del carrusel SIEMPRE caben (contain) sin scroll interno */
+.ylb__single img,
+.ylb__himg img{
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
 </style>
 
 <script is:inline>

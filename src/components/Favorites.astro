@@ -1,13 +1,13 @@
 ---
 import { getCollection } from 'astro:content';
+
 const all = await getCollection('shots');
 const index = all.map(e => ({
   slug: e.slug,
   title: e.data.title,
   alt: e.data.alt,
   src: e.data.src,
-  category: (e.data.category || '').toLowerCase(),
-  w: e.data.w, h: e.data.h
+  category: (e.data.category || '').toLowerCase()
 }));
 ---
 <section class="section" id="favs">
@@ -17,45 +17,40 @@ const index = all.map(e => ({
     <div id="favs-grid" class="favs-grid"></div>
   </div>
 
+  <!-- Índice de todas las fotos (slug→src…) para pintar favoritos por LS -->
   <script type="application/json" id="shots-index">{JSON.stringify(index)}</script>
 
   <style>
-    .favs-grid{
-      display:grid; gap:6px;
-      grid-template-columns: repeat(3, 1fr);
-    }
-    @media (min-width: 681px){ .favs-grid{ grid-template-columns: repeat(6, 1fr);} }
-    @media (min-width: 1025px){ .favs-grid{ grid-template-columns: repeat(8, 1fr);} }
-    .tile{ position:relative; overflow:hidden; border-radius:6px; background:rgba(255,255,255,.03); }
-    .tile a{ display:block; }
-    .tile img{ width:100%; height:100%; object-fit:cover; display:block; aspect-ratio:1/1; }
+    .favs-grid{display:grid; gap:6px; grid-template-columns:repeat(3,1fr)}
+    @media (min-width:681px){ .favs-grid{grid-template-columns:repeat(6,1fr)} }
+    @media (min-width:1025px){ .favs-grid{grid-template-columns:repeat(8,1fr)} }
+    .tile{position:relative; overflow:hidden; border-radius:6px; background:rgba(255,255,255,.03)}
+    .tile img{width:100%; height:100%; display:block; object-fit:cover; aspect-ratio:1/1}
+    .tile a{display:block; width:100%; height:100%}
   </style>
 
   <script is:inline>
-    const idxEl = document.getElementById('shots-index');
-    const shots = JSON.parse(idxEl?.textContent || '[]');
+    const idx = JSON.parse(document.getElementById('shots-index')?.textContent || '[]');
+    const bySlug = new Map(idx.map(x => [x.slug, x]));
     const grid = document.getElementById('favs-grid');
     const counter = document.getElementById('favs-count');
     const LS_KEY = 'yoyu_favs';
 
-    function getFavs(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch{ return []; } }
-
+    const getFavs = () => { try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch{ return []; } };
     function renderFavs(){
-      const favSlugs = new Set(getFavs());
-      const favs = shots.filter(s => favSlugs.has(s.slug));
-      counter.textContent = favs.length
-        ? `Tus favoritos (${favs.length})`
-        : 'Aún no hay favoritos.';
+      const slugs = Array.from(new Set(getFavs()));
+      const favs = slugs.map(s => bySlug.get(s)).filter(Boolean);
+      counter.textContent = favs.length ? `Tus favoritos (${favs.length})` : 'Aún no hay favoritos.';
       grid.innerHTML = favs.map(f => `
         <div class="tile">
           <a href="/gallery#${f.category}:${f.slug}" title="${f.title||''}">
-            <img src="${f.src}" alt="${f.alt||''}" loading="lazy" decoding="async"/>
+            <img src="${f.src}" alt="${f.alt||''}" loading="lazy" decoding="async" />
           </a>
         </div>
       `).join('');
     }
-
     renderFavs();
     window.addEventListener('yoyu:favs-changed', renderFavs);
+    window.addEventListener('storage', (e)=>{ if (e.key==='yoyu_favs') renderFavs(); });
   </script>
 </section>
