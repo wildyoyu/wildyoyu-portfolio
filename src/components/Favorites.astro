@@ -1,56 +1,55 @@
 ---
 import { getCollection } from 'astro:content';
-
 const all = await getCollection('shots');
 const index = all.map(e => ({
   slug: e.slug,
-  title: e.data.title || '',
-  alt: e.data.alt || '',
+  title: e.data.title,
+  alt: e.data.alt,
   src: e.data.src,
-  category: (e.data.category || '').toLowerCase()
+  category: (e.data.category || '').toLowerCase(),
+  w: e.data.w, h: e.data.h
 }));
 ---
 <section class="section" id="favs">
   <div class="container">
     <h2 class="h2" style="margin-bottom:.6rem;">Favoritos de los Yoyus</h2>
     <p class="lead" id="favs-count" style="opacity:.85; margin:0 0 .8rem 0;">Aún no hay favoritos.</p>
-
     <div id="favs-grid" class="favs-grid"></div>
-
-    <!-- Aquí viaja el índice de fotos en un data-attribute (seguro para Astro/Vite) -->
-    <div id="favs-data" data-shots={JSON.stringify(index)} hidden></div>
   </div>
 
+  <script type="application/json" id="shots-index">{JSON.stringify(index)}</script>
+
   <style>
-    .favs-grid{display:grid; gap:6px}
-    @media (max-width:680px){ .favs-grid{grid-template-columns:repeat(3,1fr)} }
-    @media (min-width:681px){ .favs-grid{grid-template-columns:repeat(6,1fr)} }
-    @media (min-width:1200px){ .favs-grid{grid-template-columns:repeat(8,1fr)} }
-    .tile{position:relative; overflow:hidden; border-radius:8px; background:rgba(255,255,255,.035); border:1px solid rgba(255,255,255,.08)}
-    .tile img{width:100%; height:100%; object-fit:cover; display:block; aspect-ratio:1/1}
-    .tile a{display:block; width:100%; height:100%}
+    .favs-grid{
+      display:grid; gap:6px;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    @media (min-width: 681px){ .favs-grid{ grid-template-columns: repeat(6, 1fr);} }
+    @media (min-width: 1025px){ .favs-grid{ grid-template-columns: repeat(8, 1fr);} }
+    .tile{ position:relative; overflow:hidden; border-radius:6px; background:rgba(255,255,255,.03); }
+    .tile a{ display:block; }
+    .tile img{ width:100%; height:100%; object-fit:cover; display:block; aspect-ratio:1/1; }
   </style>
 
   <script is:inline>
-    const dataEl = document.getElementById('favs-data');
-    let idx = [];
-    try { idx = JSON.parse(dataEl?.dataset.shots || '[]'); } catch { idx = []; }
-
-    const bySlug = new Map(idx.map(x => [x.slug, x]));
+    const idxEl = document.getElementById('shots-index');
+    const shots = JSON.parse(idxEl?.textContent || '[]');
     const grid = document.getElementById('favs-grid');
     const counter = document.getElementById('favs-count');
     const LS_KEY = 'yoyu_favs';
 
-    const getFavs = () => { try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch{ return []; } };
+    function getFavs(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch{ return []; } }
 
     function renderFavs(){
-      const slugs = Array.from(new Set(getFavs()));
-      const favs = slugs.map(s => bySlug.get(s)).filter(Boolean);
-      counter.textContent = favs.length ? `Tus favoritos (${favs.length})` : 'Aún no hay favoritos.';
+      const favSlugs = new Set(getFavs());
+      const favs = shots.filter(s => favSlugs.has(s.slug));
+      counter.textContent = favs.length
+        ? `Tus favoritos (${favs.length})`
+        : 'Aún no hay favoritos.';
       grid.innerHTML = favs.map(f => `
         <div class="tile">
-          <a href="/gallery#${f.category}:${f.slug}" title="${(f.title||'').replace(/"/g,'&quot;')}">
-            <img src="${f.src}" alt="${(f.alt||'').replace(/"/g,'&quot;')}" loading="lazy" decoding="async" />
+          <a href="/gallery#${f.category}:${f.slug}" title="${f.title||''}">
+            <img src="${f.src}" alt="${f.alt||''}" loading="lazy" decoding="async"/>
           </a>
         </div>
       `).join('');
@@ -58,6 +57,5 @@ const index = all.map(e => ({
 
     renderFavs();
     window.addEventListener('yoyu:favs-changed', renderFavs);
-    window.addEventListener('storage', (e)=>{ if (e.key==='yoyu_favs') renderFavs(); });
   </script>
 </section>

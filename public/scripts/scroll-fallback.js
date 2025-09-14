@@ -1,4 +1,3 @@
-// scroll-fallback.js — opcional; activa scroll suave a anchors si el navegador no lo soporta.
 (() => {
   const prefersReduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const supportsSmooth = 'scrollBehavior' in document.documentElement.style;

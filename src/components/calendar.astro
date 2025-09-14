@@ -1,9 +1,8 @@
 ---
 import { astroEvents } from '../data/events';
-
 const now = new Date();
 const year = now.getFullYear();
-const month = now.getMonth() + 1; // 1..12
+const month = now.getMonth() + 1;
 ---
 <section class="section" id="calendar">
   <div class="container">
@@ -23,10 +22,9 @@ const month = now.getMonth() + 1; // 1..12
       <div class="cal__grid">
         <div class="cal__dow">L</div><div class="cal__dow">M</div><div class="cal__dow">X</div>
         <div class="cal__dow">J</div><div class="cal__dow">V</div><div class="cal__dow">S</div><div class="cal__dow">D</div>
-        <!-- Las celdas se pintan vía JS -->
       </div>
 
-      <div class="cal__legend">
+      <div class="cal__legend" style="margin-top:6px">
         <span><i class="cal__badge t-luna"></i> Luna</span>
         <span><i class="cal__badge t-lluvia"></i> Lluvia</span>
         <span><i class="cal__badge t-planeta"></i> Planeta</span>
@@ -42,27 +40,22 @@ const month = now.getMonth() + 1; // 1..12
   </div>
 
   <style>
-    .cal{display:grid; gap:12px; border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px; background:rgba(255,255,255,.035)}
+    .cal{display:grid; gap:12px}
     .cal__hdr{display:flex; align-items:center; justify-content:space-between}
     .cal__title{text-transform:capitalize; font-weight:900}
-    .cal__btn{padding:.2rem .6rem}
-
     .cal__grid{display:grid; grid-template-columns:repeat(7,1fr)}
     .cal__dow, .cal__cell{
-      border-top:1px solid rgba(255,255,255,.08);
-      border-left:1px solid rgba(255,255,255,.08);
+      border-top:1px solid var(--card-b); border-left:1px solid var(--card-b);
       min-height:64px; display:grid; align-content:start; padding:6px;
     }
-    .cal__dow:nth-child(7n), .cal__cell:nth-child(7n){ border-right:1px solid rgba(255,255,255,.08) }
-    .cal__cell:last-child{ border-bottom:1px solid rgba(255,255,255,.08) }
+    .cal__dow:nth-child(7n), .cal__cell:nth-child(7n){ border-right:1px solid var(--card-b) }
+    .cal__cell:last-child{ border-bottom:1px solid var(--card-b) }
     .cal__dow{ text-align:center; align-content:center; opacity:.7; font-weight:800; min-height:36px }
     .cal__cell.is-empty{ background:linear-gradient(180deg, rgba(255,255,255,.03), transparent) }
-
     .cal__num{ font-weight:900; opacity:.95 }
     .cal__events{ display:flex; gap:4px; margin-top:auto; align-items:flex-end; min-height:14px }
     .cal__badge{ width:8px; height:8px; border-radius:999px; border:1px solid rgba(255,255,255,.6) }
     .t-luna{ background:#dbeafe } .t-lluvia{ background:#fde68a } .t-planeta{ background:#c7f9cc } .t-eclipse{ background:#fecaca } .t-otro{ background:#e5e7eb }
-
     .cal__legend{display:flex; flex-wrap:wrap; gap:10px; opacity:.9; font-size:14px}
     .cal__list ul{margin:0; padding-left:18px}
   </style>
@@ -72,12 +65,11 @@ const month = now.getMonth() + 1; // 1..12
     const GRID = ROOT.querySelector('.cal__grid');
     const TITLE = ROOT.querySelector('.cal__title');
     const UPC = ROOT.querySelector('.cal__upcoming');
-
     const EVS = (() => { try { return JSON.parse(ROOT.dataset.events || '[]'); } catch { return []; } })();
 
     const monthMatrix = (y,m) => {
       const first = new Date(y, m-1, 1);
-      const start = (first.getDay() + 6) % 7;     // Lunes=0
+      const start = (first.getDay() + 6) % 7; // Lunes=0
       const days  = new Date(y, m, 0).getDate();
       const cells = [];
       for(let i=0;i<start;i++) cells.push({d:null});
@@ -90,10 +82,9 @@ const month = now.getMonth() + 1; // 1..12
     };
 
     function renderCalendar(y,m){
-      ROOT.dataset.year = y; ROOT.dataset.month = m;
-      TITLE.textContent = new Date(y, m-1, 1).toLocaleString('es-ES', { month:'long', year:'numeric' });
-
-      GRID.querySelectorAll('.cal__cell').forEach(n => n.remove());
+      ROOT.dataset.year=y; ROOT.dataset.month=m;
+      TITLE.textContent = new Date(y, m-1, 1).toLocaleString('es-ES',{month:'long', year:'numeric'});
+      GRID.querySelectorAll('.cal__cell').forEach(n=>n.remove());
       const byDay = new Map();
       EVS.forEach(ev => { const arr = byDay.get(ev.date)||[]; arr.push(ev); byDay.set(ev.date, arr); });
 
@@ -102,11 +93,9 @@ const month = now.getMonth() + 1; // 1..12
         const div = document.createElement('div');
         div.className = 'cal__cell' + (cell.d ? '' : ' is-empty');
         if (cell.d){
-          const num = document.createElement('div'); num.className='cal__num'; num.textContent = String(cell.d);
-          const evs = document.createElement('div'); evs.className='cal__events';
-          (byDay.get(cell.iso)||[]).forEach(ev => {
-            const i=document.createElement('div'); i.className='cal__badge t-'+(ev.type||'otro'); i.title=ev.title; evs.appendChild(i);
-          });
+          const num=document.createElement('div'); num.className='cal__num'; num.textContent=String(cell.d);
+          const evs=document.createElement('div'); evs.className='cal__events';
+          (byDay.get(cell.iso)||[]).forEach(ev=>{ const i=document.createElement('div'); i.className='cal__badge t-'+(ev.type||'otro'); i.title=ev.title; evs.appendChild(i); });
           div.appendChild(num); div.appendChild(evs);
         }
         frag.appendChild(div);
@@ -114,9 +103,8 @@ const month = now.getMonth() + 1; // 1..12
       GRID.appendChild(frag);
 
       const today = new Date(new Date().toDateString());
-      UPC.innerHTML = EVS
-        .filter(ev => new Date(ev.date) >= today)
-        .sort((a,b) => new Date(a.date) - new Date(b.date))
+      UPC.innerHTML = EVS.filter(ev => new Date(ev.date) >= today)
+        .sort((a,b)=> new Date(a.date) - new Date(b.date))
         .slice(0,8)
         .map(ev => `<li><strong>${new Date(ev.date).toLocaleDateString('es-ES',{day:'2-digit',month:'short'})}</strong> — ${ev.title}</li>`)
         .join('');

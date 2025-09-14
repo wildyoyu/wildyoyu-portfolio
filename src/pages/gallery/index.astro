@@ -3,7 +3,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 
 const all = await getCollection("shots");
-
 function itemsBy(cat) {
   return all
     .filter((e) => (e.data.category || "").toLowerCase() === cat)
@@ -11,133 +10,68 @@ function itemsBy(cat) {
     .map((e) => ({
       slug: e.slug,
       src: e.data.src,
-      srcs: e.data.srcs || [],   // ← importante para carrusel
+      srcs: e.data.srcs || [],
       alt: e.data.alt,
       title: e.data.title,
       w: e.data.w, h: e.data.h
     }));
 }
-
-
 const tabs = [
   { id: "wildlife", title: "Wildlife", items: itemsBy("wildlife") },
-  { id: "macro", title: "Macro space", items: itemsBy("macro") },
-  { id: "night", title: "Night moments", items: itemsBy("night") },
+  { id: "macro",    title: "Macro space", items: itemsBy("macro") },
+  { id: "night",    title: "Night moments", items: itemsBy("night") },
 ];
 ---
 <BaseLayout title="Galería — Wildyoyu" description="Wildlife, Macro y Night">
   <section class="section">
-    <div class="container gallery-root">
-      <div class="tabs" role="tablist" aria-label="Secciones de galería">
+    <div class="container">
+      <div class="tabs" role="tablist">
         {tabs.map((t, i) => (
-          <button
-            class={`tab${i===0 ? ' is-active' : ''}`}
-            data-tab={t.id}
-            role="tab"
-            aria-selected={i===0 ? 'true' : 'false'}
-            aria-controls={`panel-${t.id}`}
-            id={`tab-${t.id}`}
-            type="button"
-          >
+          <button class={`tab${i===0?' is-active':''}`} data-tab={t.id} aria-selected={i===0?'true':'false'} aria-controls={`panel-${t.id}`} id={`tab-${t.id}`} type="button">
             {t.title}
           </button>
         ))}
       </div>
 
-      <div class="panels">
-        {tabs.map((t, i) => (
-          <div
-            id={`panel-${t.id}`}
-            class={`panel${i===0 ? ' is-active' : ''}`}
-            role="tabpanel"
-            aria-labelledby={`tab-${t.id}`}
-            data-cat={t.id}
-            data-items={JSON.stringify(t.items)}
-
-          >
-            {t.items.length === 0 ? (
-              <p class="lead">Aún no hay fotos en {t.title.toLowerCase()}.</p>
-            ) : (
-              <div class="ig-grid">
-                {t.items.map((it, idx) => (
-                  <article class="tile">
-                    <button
-                      class="lb-trigger"
-                      type="button"
-                      data-idx={idx}
-                      data-slug={it.slug}
-                      data-src={it.src}
-                      data-alt={it.alt}
-                      data-title={it.title}
-                      title={it.title}
-                    >
-                      <div class="thumb">
-                        <img
-                          src={it.src}
-                          alt={it.alt}
-                          loading="lazy"
-                          decoding="async"
-                          sizes="(max-width:680px) 33vw, (max-width:1024px) 25vw, 18vw"
-                        />
-                      </div>
-                    </button>
-                  </article>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      {tabs.map((t, i) => (
+        <div id={`panel-${t.id}`} class={`panel${i===0?' is-active':''}`} role="tabpanel" aria-labelledby={`tab-${t.id}`}
+             data-cat={t.id}
+             data-items={JSON.stringify(t.items)}>
+          {t.items.length === 0 ? (
+            <p class="lead">Aún no hay fotos en {t.title.toLowerCase()}.</p>
+          ) : (
+            <div class="ig-grid">
+              {t.items.map((it, idx) => (
+                <article class="tile">
+                  <button class="lb-trigger" type="button"
+                          data-idx={idx} data-slug={it.slug}
+                          data-src={it.src} data-alt={it.alt} data-title={it.title}>
+                    <div class="thumb"><img src={it.src} alt={it.alt} loading="lazy" decoding="async" /></div>
+                  </button>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   </section>
 
   <style>
-    .tabs{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px}
-    .tab{padding:.6rem .9rem; border-radius:999px; border:1px solid rgba(255,255,255,.18);
-         background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02)); font-weight:800}
-    .tab.is-active{background:var(--fg); color:var(--bg); border-color:transparent}
-
-    .panels{position:relative}
     .panel{display:none} .panel.is-active{display:block}
-
-    .ig-grid{display:grid; gap:4px}
-    @media (max-width:680px){ .ig-grid{grid-template-columns:repeat(3,1fr)} }
-    @media (min-width:681px) and (max-width:1024px){ .ig-grid{grid-template-columns:repeat(4,1fr)} }
-    @media (min-width:1025px){ .ig-grid{grid-template-columns:repeat(5,1fr)} }
-
-    .tile{position:relative; overflow:hidden; border-radius:6px; background:rgba(255,255,255,.03)}
-    .lb-trigger{display:block; width:100%; padding:0; margin:0; border:0; background:none; cursor:zoom-in}
-    .thumb{width:100%; aspect-ratio:1/1; overflow:hidden}
-    .thumb img{width:100%; height:100%; object-fit:cover; display:block}
   </style>
 
   <script is:inline>
     const ids = ['wildlife','macro','night'];
     const tabs = Array.from(document.querySelectorAll('.tab'));
-    const panels = ids.map(id => document.getElementById('panel-' + id));
-
+    const panels = ids.map(id=>document.getElementById('panel-'+id));
     function activate(id){
-      tabs.forEach(btn => {
-        const on = btn.dataset.tab === id;
-        btn.classList.toggle('is-active', on);
-        btn.setAttribute('aria-selected', on ? 'true' : 'false');
-      });
-      panels.forEach(p => p?.classList.toggle('is-active', p.id === 'panel-' + id));
-      history.replaceState(null, '', '#' + id);
+      tabs.forEach(b=>{const on=b.dataset.tab===id; b.classList.toggle('is-active',on); b.setAttribute('aria-selected',on?'true':'false');});
+      panels.forEach(p=>p?.classList.toggle('is-active', p.id==='panel-'+id));
+      history.replaceState(null,'','#'+id);
     }
-
-    // Activación inicial según hash (#cat o #cat:slug)
-    const initHash = location.hash.replace('#','') || '';
-    const initCat = initHash.split(':')[0];
-    activate(ids.includes(initCat) ? initCat : ids[0]);
-
-    // Cambiar pestaña si cambia el hash (útil al abrir enlaces #cat:slug)
-    window.addEventListener('hashchange', () => {
-      const h = location.hash.replace('#','');
-      const cat = h.split(':')[0];
-      if (ids.includes(cat)) activate(cat);
-    });
-
-    tabs.forEach(btn => btn.addEventListener('click', () => activate(btn.dataset.tab)));
+    const init = (location.hash.replace('#','')||'').split(':')[0];
+    activate(ids.includes(init)?init:ids[0]);
+    tabs.forEach(b=>b.addEventListener('click',()=>activate(b.dataset.tab)));
   </script>
 </BaseLayout>
