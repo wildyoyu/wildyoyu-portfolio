@@ -1,10 +1,8 @@
 ---
 /**
- * Visor 70% ancho · 90vh alto.
- * - Imagen SIEMPRE cabida (object-fit: contain) y sin scroll interno.
- * - Pie blanco sticky con título + ❤️ Like + ↗ Compartir.
- * - Si hay `srcs[]`, tira horizontal con scroll (carrusel).
- * - Abre en la miniatura pulsada (slug > idx), soporta hash #cat:slug|idx.
+ * Visor 70% ancho / 90vh, imagen SIEMPRE completa (contain),
+ * pie blanco sticky con Like+Share, carrusel horizontal si hay `srcs`,
+ * abre en la miniatura pulsada (slug > idx), y sincroniza hash #cat:slug|idx.
  */
 ---
 <dialog id="sheetviewer" class="sv" aria-label="Visor de imágenes">
@@ -42,24 +40,24 @@
     height:100%; overflow-y:auto; overflow-x:hidden;
     scroll-snap-type:y mandatory; -webkit-overflow-scrolling:touch; overscroll-behavior-y:contain;
   }
+
   .sv-slide{
     min-height:100%; box-sizing:border-box; padding:clamp(10px,2vw,18px);
     scroll-snap-align:start; display:flex; align-items:center; justify-content:center;
   }
 
-  .sv-figure{ width:min(92%,980px); display:flex; flex-direction:column; gap:12px; flex:1; min-height:0; }
+  .sv-figure{
+    width:min(92%,980px);
+    display:flex; flex-direction:column; gap:12px;
+    flex:1; min-height:0;
+  }
 
-  /* Altura disponible para imagen (se calcula en JS y se asigna a --imgH) */
   .sv-view{ position:relative; flex:1; min-height:0; height:var(--imgH, 70vh); }
   .sv-single, .sv-hstrip{ width:100%; height:100%; }
 
-  /* Imagen única */
   .sv-single{ display:grid; place-items:center; overflow:hidden; }
-  .sv-single img{
-    max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; display:block;
-  }
+  .sv-single img{ max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; display:block; }
 
-  /* Carrusel horizontal */
   .sv-hstrip{
     display:flex; gap:8px; overflow-x:auto; overflow-y:hidden;
     scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
@@ -69,44 +67,42 @@
     scroll-snap-align:center; border-radius:10px; overflow:hidden;
     background:rgba(255,255,255,.03); outline:1px solid rgba(255,255,255,.06);
   }
-  .sv-himg img{
-    height:100%; width:auto; max-width:100%; object-fit:contain; display:block;
-  }
+  .sv-himg img{ height:100%; width:auto; max-width:100%; object-fit:contain; display:block; }
   .sv-hstrip::-webkit-scrollbar{ display:none; }
 
-  /* Pie blanco estilo Instagram */
-  .sv-caption{
+  .sv .sv-sheet .sv-reel .sv-slide .sv-figure .sv-caption{
     position:sticky; bottom:0; width:100%;
-    background:#fff; color:#111;
-    border-radius:12px; border:1px solid #e5e7eb;
+    background:#fff !important; color:#111 !important;
+    border-radius:12px; border:1px solid #e5e7eb !important;
     box-shadow:0 12px 32px rgba(0,0,0,.25);
     display:flex; align-items:center; gap:10px;
-    padding:10px 12px; z-index:5;
+    padding:10px 12px; z-index:5; mix-blend-mode:normal !important;
   }
   .cap-text{
     min-width:0; flex:1; font-weight:800;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#111 !important;
   }
   .cap-actions{ display:flex; gap:8px; }
+
   .cap-btn{
-    all:unset; box-sizing:border-box; width:40px; height:40px; border-radius:9999px;
-    background:#fff; color:#111; border:1px solid #e5e7eb;
-    display:grid; place-items:center; cursor:pointer; line-height:0;
+    all:unset; box-sizing:border-box !important;
+    width:40px !important; height:40px !important; border-radius:9999px !important;
+    background:#fff !important; color:#111 !important; border:1px solid #e5e7eb !important;
+    display:grid !important; place-items:center !important; cursor:pointer !important; line-height:0 !important;
   }
   .cap-btn svg{ width:22px; height:22px; display:block; }
-  .cap-like.liked{ color:#e11d48; }
+  .cap-like.liked{ color:#e11d48 !important; }
   .cap-like.liked svg{ fill: currentColor; }
 
-  /* Un poco más contenido en desktop */
   @media (min-width:1024px){
-    .sv-sheet{ width: clamp(380px, 56vw, 920px); height: 82vh; }
+    .sv-sheet{ width: clamp(380px, 52vw, 900px); height: 78vh; }
     .sv-figure{ width: min(84%, 820px); }
   }
 </style>
 
 <script is:inline>
   const dialog  = document.getElementById('sheetviewer');
-  if (!dialog) { console.warn('[SheetViewer] No se encontró el dialog.'); }
+  if (!dialog) console.warn('[Lightbox] dialog no encontrado');
   else {
     const sheet   = dialog.querySelector('.sv-sheet');
     const reel    = dialog.querySelector('.sv-reel');
@@ -116,33 +112,32 @@
     let current = 0;
     let activeCat = '';
 
-    /* ===== Likes (localStorage) ===== */
+    // === Favoritos (id = slug || src) ===
     const LS_KEY = 'yoyu_favs';
     const getFavs = () => { try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch{ return []; } };
     const setFavs = (arr) => localStorage.setItem(LS_KEY, JSON.stringify(Array.from(new Set(arr))));
-    const isLiked = (slug) => getFavs().includes(slug);
-    function toggleLike(slug){
+    const isLiked = (id) => getFavs().includes(id);
+    function toggleLike(id){
       const favs = new Set(getFavs());
-      favs.has(slug) ? favs.delete(slug) : favs.add(slug);
+      favs.has(id) ? favs.delete(id) : favs.add(id);
       setFavs([...favs]);
       window.dispatchEvent(new CustomEvent('yoyu:favs-changed'));
     }
 
-    const uniq = (arr) => Array.from(new Set((arr||[]).filter(Boolean)));
-    const findIndexBySlug = (slug) => slug ? items.findIndex(it => (it.slug||'')===slug) : -1;
+    const uniq = (arr) => Array.from(new Set(arr.filter(Boolean)));
+    const findIndexBySlug = (slug) => (!slug ? -1 : items.findIndex(it => (it.slug||'')===slug));
 
     function slideHTML(it, idx){
       const title = it.title || it.alt || '';
-      const liked = isLiked(it.slug||'');
+      const keyId = (it.slug || it.src || ''); // id flexible
+      const liked = isLiked(keyId);
       const carousel = uniq([it.src, ...(Array.isArray(it.srcs)? it.srcs: [])]);
 
       const view = (carousel.length > 1)
-        ? `<div class="sv-view"><div class="sv-hstrip" data-strip>
-             ${carousel.map(s => `<div class="sv-himg"><img src="${s}" alt="${it.alt||''}" loading="lazy" decoding="async"/></div>`).join('')}
-           </div></div>`
-        : `<div class="sv-view"><div class="sv-single">
-             <img src="${it.src}" alt="${it.alt||''}" loading="lazy" decoding="async"/>
-           </div></div>`;
+        ? `<div class="sv-view"><div class="sv-hstrip" data-strip>${
+            carousel.map(s => `<div class="sv-himg"><img src="${s}" alt="${it.alt||''}" loading="lazy" decoding="async"/></div>`).join('')
+          }</div></div>`
+        : `<div class="sv-view"><div class="sv-single"><img src="${it.src}" alt="${it.alt||''}" loading="lazy" decoding="async"/></div></div>`;
 
       return `
         <section class="sv-slide" data-idx="${idx}" data-slug="${it.slug||''}">
@@ -181,15 +176,32 @@
     function measureAndSetImgH(){
       const headerH = dialog.querySelector('.sv-top')?.clientHeight || 0;
       const slide = reel.querySelector(`.sv-slide[data-idx="${current}"]`); if (!slide) return;
-      const cap = slide.querySelector('.sv-caption'); const capH = cap?.offsetHeight || 84;
+      const cap = slide.querySelector('.sv-caption');
+      const capH = cap?.offsetHeight || 84;
       const gap = 12; const margin = 16;
       const avail = Math.max(240, sheet.clientHeight - headerH - capH - gap - margin);
       slide.querySelector('.sv-view')?.style.setProperty('--imgH', avail + 'px');
     }
 
+    function updateHash(push = true){
+      if (!activeCat) return;
+      const it = items[current] || {}; const slugOrIdx = it.slug || String(current);
+      if (push) history.replaceState(null,'','#'+activeCat+':'+slugOrIdx);
+    }
+
+    function syncLikeState(){
+      const slide = reel.querySelector(`.sv-slide[data-idx="${current}"]`); if(!slide) return;
+      const it = items[current] || {};
+      const key = it.slug || it.src || '';
+      const btn = slide.querySelector('.cap-like');
+      btn?.classList.toggle('liked', isLiked(key));
+      btn?.setAttribute('title', isLiked(key)?'Quitar de favoritos':'Añadir a favoritos');
+    }
+
     function scrollToIndex(idx, behavior='auto'){
       current = Math.max(0, Math.min(items.length - 1, Number(idx)||0));
-      reel.querySelector(`.sv-slide[data-idx="${current}"]`)?.scrollIntoView({ behavior, block:'start' });
+      const el = reel.querySelector(`.sv-slide[data-idx="${current}"]`);
+      el?.scrollIntoView({ behavior, block:'start' });
       updateHash(); syncLikeState();
       requestAnimationFrame(measureAndSetImgH);
     }
@@ -202,14 +214,6 @@
         if(d<min){min=d; idx=i;}
       }
       if (idx!==current){ current=idx; updateHash(false); syncLikeState(); measureAndSetImgH(); }
-    }
-
-    function syncLikeState(){
-      const slide = reel.querySelector(`.sv-slide[data-idx="${current}"]`); if(!slide) return;
-      const slug = slide.dataset.slug || ''; const btn = slide.querySelector('.cap-like');
-      const on = isLiked(slug);
-      btn?.classList.toggle('liked', on);
-      btn?.setAttribute('title', on ? 'Quitar de favoritos' : 'Añadir a favoritos');
     }
 
     function openFromTrigger(btn){
@@ -234,36 +238,36 @@
       const url = new URL(location.href); url.hash = `${activeCat}:${slug}`;
       try{
         if(navigator.share){ await navigator.share({ title:it.title||'Foto', url:url.toString() }); }
-        else{ await navigator.clipboard.writeText(url.toString()); alert('Enlace copiado'); }
+        else { await navigator.clipboard.writeText(url.toString()); alert('Enlace copiado'); }
       }catch{}
     }
 
     function close(){
       if (dialog.open && 'close' in dialog) dialog.close();
-      dialog.removeAttribute('open');
-      document.documentElement.style.overflow='';
+      dialog.removeAttribute('open'); document.documentElement.style.overflow='';
     }
 
-    function updateHash(push = true){
-      if (!activeCat) return;
-      const it = items[current] || {}; const slugOrIdx = it.slug || String(current);
-      const newHash = '#'+activeCat+':'+slugOrIdx;
-      if (push) history.replaceState(null,'',newHash);
-      else if (location.hash !== newHash) history.replaceState(null,'',newHash);
-    }
-
-    /* Delegaciones */
+    // Delegaciones
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('.lb-trigger'); if (!btn) return;
       e.preventDefault(); openFromTrigger(btn);
     });
 
-    // Pie: like/share
+    // Like/Share con actualización inmediata del botón
     reel.addEventListener('click', (e) => {
       const slide = e.target.closest('.sv-slide'); if (!slide) return;
-      const slug = slide.dataset.slug || '';
-      if (e.target.closest('.cap-like')){ toggleLike(slug); syncLikeState(); return; }
-      if (e.target.closest('.cap-share')){ e.preventDefault(); shareCurrent(); return; }
+      const it = items[current] || {};
+      const key = (slide.dataset.slug || it.slug || it.src || '');
+
+      const likeBtn = e.target.closest('.cap-like');
+      if (likeBtn){
+        toggleLike(key);
+        likeBtn.classList.toggle('liked', isLiked(key)); // UI inmediata
+        likeBtn.setAttribute('title', isLiked(key)?'Quitar de favoritos':'Añadir a favoritos');
+        return;
+      }
+      const shareBtn = e.target.closest('.cap-share');
+      if (shareBtn){ e.preventDefault(); shareCurrent(); return; }
     });
 
     reel.addEventListener('scroll', updateCurrentOnScroll, { passive:true });
@@ -298,6 +302,6 @@
     window.addEventListener('load', openFromHash);
     window.addEventListener('resize', () => requestAnimationFrame(measureAndSetImgH), { passive:true });
 
-    console.info('[SheetViewer] listo ✓');
+    console.info('[Lightbox listo ✓]');
   }
 </script>

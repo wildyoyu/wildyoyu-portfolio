@@ -1,8 +1,9 @@
 ---
 import { astroEvents } from '../data/events';
+
 const now = new Date();
 const year = now.getFullYear();
-const month = now.getMonth() + 1; // 1..12
+const month = now.getMonth() + 1;
 ---
 <section class="section" id="calendar">
   <div class="container">
@@ -12,22 +13,16 @@ const month = now.getMonth() + 1; // 1..12
          data-year={year} data-month={month}
          data-events={JSON.stringify(astroEvents)}>
       <header class="cal__hdr">
-        <div class="cal__title" aria-live="polite"></div>
+        <div class="cal__title"></div>
         <div class="cal__nav">
-          <button class="btn cal__btn" data-nav="-1" aria-label="Mes anterior" type="button">‹</button>
-          <button class="btn cal__btn" data-nav="+1" aria-label="Mes siguiente" type="button">›</button>
+          <button class="btn cal__btn" data-nav="-1" aria-label="Mes anterior">‹</button>
+          <button class="btn cal__btn" data-nav="+1" aria-label="Mes siguiente">›</button>
         </div>
       </header>
 
-      <div class="cal__grid" role="grid" aria-readonly="true">
-        <div class="cal__dow" role="columnheader">L</div>
-        <div class="cal__dow" role="columnheader">M</div>
-        <div class="cal__dow" role="columnheader">X</div>
-        <div class="cal__dow" role="columnheader">J</div>
-        <div class="cal__dow" role="columnheader">V</div>
-        <div class="cal__dow" role="columnheader">S</div>
-        <div class="cal__dow" role="columnheader">D</div>
-        <!-- Las celdas se pintan vía JS -->
+      <div class="cal__grid">
+        <div class="cal__dow">L</div><div class="cal__dow">M</div><div class="cal__dow">X</div>
+        <div class="cal__dow">J</div><div class="cal__dow">V</div><div class="cal__dow">S</div><div class="cal__dow">D</div>
       </div>
 
       <div class="cal__legend" style="margin-top:6px">
@@ -51,26 +46,26 @@ const month = now.getMonth() + 1; // 1..12
     .cal__title{text-transform:capitalize; font-weight:900}
     .cal__grid{display:grid; grid-template-columns:repeat(7,1fr)}
     .cal__dow, .cal__cell{
-      border-top:1px solid var(--card-b); border-left:1px solid var(--card-b);
-      min-height:64px; display:grid; align-content:start; padding:6px;
+      border-top:1px solid var(--card-b, rgba(255,255,255,.12));
+      border-left:1px solid var(--card-b, rgba(255,255,255,.12));
+      min-height:64px; display:grid; align-content:start; padding:6px; background:transparent;
     }
-    .cal__dow:nth-child(7n), .cal__cell:nth-child(7n){ border-right:1px solid var(--card-b) }
-    .cal__cell.is-last-row{ border-bottom:1px solid var(--card-b) } /* borde completo abajo */
-
+    .cal__dow:nth-child(7n),
+    .cal__cell:nth-child(7n){ border-right:1px solid var(--card-b, rgba(255,255,255,.12)); }
+    .cal__cell:last-child{ border-bottom:1px solid var(--card-b, rgba(255,255,255,.12)); }
     .cal__dow{ text-align:center; align-content:center; opacity:.7; font-weight:800; min-height:36px }
     .cal__cell.is-empty{ background:linear-gradient(180deg, rgba(255,255,255,.03), transparent) }
-
     .cal__num{ font-weight:900; opacity:.95 }
-    .cal__num.is-today{
-      background: rgba(255,255,255,.12);
-      padding: 2px 6px;
-      border-radius: 8px;
+    .cal__events{ display:flex; gap:4px; margin-top:auto; align-items:flex-end; min-height:18px; flex-wrap:wrap }
+    .cal__e{
+      display:inline-flex; align-items:center; justify-content:center;
+      width:18px; height:18px; border-radius:999px;
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--card-b, rgba(255,255,255,.12));
+      font-size:12px; line-height:1;
     }
-
-    .cal__events{ display:flex; gap:4px; margin-top:auto; align-items:flex-end; min-height:14px }
     .cal__badge{ width:8px; height:8px; border-radius:999px; border:1px solid rgba(255,255,255,.6) }
     .t-luna{ background:#dbeafe } .t-lluvia{ background:#fde68a } .t-planeta{ background:#c7f9cc } .t-eclipse{ background:#fecaca } .t-otro{ background:#e5e7eb }
-
     .cal__legend{display:flex; flex-wrap:wrap; gap:10px; opacity:.9; font-size:14px}
     .cal__list ul{margin:0; padding-left:18px}
   </style>
@@ -80,9 +75,10 @@ const month = now.getMonth() + 1; // 1..12
     const GRID = ROOT.querySelector('.cal__grid');
     const TITLE = ROOT.querySelector('.cal__title');
     const UPC = ROOT.querySelector('.cal__upcoming');
-    const EVS = (()=>{try{return JSON.parse(ROOT.dataset.events||'[]')}catch{return[]}})();
+    const EVS = (() => { try { return JSON.parse(ROOT.dataset.events || '[]'); } catch { return []; } })();
 
-    // Matriz mensual, con huecos iniciales y relleno hasta múltiplo de 7
+    const TYPE_EMOJI = { luna:'🌙', lluvia:'☄️', planeta:'🪐', eclipse:'🌒', otro:'✦' };
+
     const monthMatrix = (y,m) => {
       const first = new Date(y, m-1, 1);
       const start = (first.getDay() + 6) % 7; // Lunes=0
@@ -98,71 +94,49 @@ const month = now.getMonth() + 1; // 1..12
     };
 
     function renderCalendar(y,m){
-      ROOT.dataset.year = y; ROOT.dataset.month = m;
+      ROOT.dataset.year=y; ROOT.dataset.month=m;
+      TITLE.textContent = new Date(y, m-1, 1).toLocaleString('es-ES',{month:'long', year:'numeric'});
+      GRID.querySelectorAll('.cal__cell').forEach(n=>n.remove());
 
-      // Título mes/año
-      TITLE.textContent = new Date(y, m-1, 1).toLocaleString('es-ES', { month:'long', year:'numeric' });
-
-      // Limpiar celdas anteriores
-      GRID.querySelectorAll('.cal__cell').forEach(n => n.remove());
-
-      // Índice de eventos por día ISO
       const byDay = new Map();
-      EVS.forEach(ev => { const arr = byDay.get(ev.date)||[]; arr.push(ev); byDay.set(ev.date, arr); });
-
-      // Pintar celdas
-      const cells = monthMatrix(y,m);
-      const lastRowStart = Math.max(0, cells.length - 7);
-      const todayISO = new Date().toISOString().slice(0,10);
+      EVS.forEach(ev => { const key = ev.date; const arr = byDay.get(key)||[]; arr.push(ev); byDay.set(key, arr); });
 
       const frag = document.createDocumentFragment();
-      cells.forEach((cell, idx) => {
+      for(const cell of monthMatrix(y,m)){
         const div = document.createElement('div');
-        div.className = 'cal__cell' + (cell.d ? '' : ' is-empty') + (idx >= lastRowStart ? ' is-last-row' : '');
-        div.setAttribute('role','gridcell');
-
+        div.className = 'cal__cell' + (cell.d ? '' : ' is-empty');
         if (cell.d){
-          const num = document.createElement('div');
-          num.className = 'cal__num';
-          num.textContent = String(cell.d);
-          if (cell.iso === todayISO) num.classList.add('is-today');
-
-          const evs = document.createElement('div'); evs.className='cal__events';
-          (byDay.get(cell.iso)||[]).forEach(ev => {
-            const i = document.createElement('div');
-            i.className = 'cal__badge t-'+(ev.type||'otro'); i.title = ev.title;
+          const num=document.createElement('div'); num.className='cal__num'; num.textContent=String(cell.d);
+          const evs=document.createElement('div'); evs.className='cal__events';
+          (byDay.get(cell.iso)||[]).forEach(ev=>{
+            const i=document.createElement('span');
+            i.className='cal__e t-'+(ev.type||'otro');
+            i.textContent = TYPE_EMOJI[ev.type||'otro'];
+            i.title = ev.title;
             evs.appendChild(i);
           });
-
-          div.appendChild(num);
-          div.appendChild(evs);
+          div.appendChild(num); div.appendChild(evs);
         }
         frag.appendChild(div);
-      });
+      }
       GRID.appendChild(frag);
 
-      // Próximos eventos (desde hoy)
       const today = new Date(new Date().toDateString());
-      UPC.innerHTML = EVS
-        .filter(ev => new Date(ev.date) >= today)
-        .sort((a,b) => new Date(a.date) - new Date(b.date))
+      UPC.innerHTML = EVS.filter(ev => new Date(ev.date) >= today)
+        .sort((a,b)=> new Date(a.date) - new Date(b.date))
         .slice(0,8)
         .map(ev => `<li><strong>${new Date(ev.date).toLocaleDateString('es-ES',{day:'2-digit',month:'short'})}</strong> — ${ev.title}</li>`)
         .join('');
     }
 
-    // Navegación por mes
     ROOT.querySelectorAll('.cal__btn').forEach(btn => {
       btn.addEventListener('click', () => {
         let y = Number(ROOT.dataset.year), m = Number(ROOT.dataset.month);
-        m += Number(btn.dataset.nav);
-        if (m < 1){ m = 12; y--; }
-        if (m > 12){ m = 1;  y++; }
+        m += Number(btn.dataset.nav); if (m<1){m=12;y--} if (m>12){m=1;y++}
         renderCalendar(y,m);
       });
     });
 
-    // Primer render
     renderCalendar(Number(ROOT.dataset.year), Number(ROOT.dataset.month));
   </script>
 </section>
