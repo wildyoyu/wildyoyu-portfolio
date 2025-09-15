@@ -1,4 +1,6 @@
-/* Fuentes variables autoalojadas */
+/* =========================
+   Fuentes variables
+   ========================= */
 @import "@fontsource-variable/inter/index.css";
 @import "@fontsource-variable/newsreader/index.css";
 
@@ -6,7 +8,7 @@
    Tokens & base
    ========================= */
 :root{
-  --bg: #0a1914;          /* verde oscuro */
+  --bg: #0a1914;        /* verde oscuro */
   --fg: #e8ecef;
   --muted: #9aa4ad;
   --accent: #89c2ff;
@@ -14,7 +16,8 @@
   --maxw: 1200px;
   --radius: 18px;
   --shadow: 0 10px 30px rgba(0,0,0,.25);
-  --nav-h: 60px;          /* altura aprox. navbar para scroll-padding */
+  --card-b: rgba(255,255,255,.08);   /* borde sutil común */
+  --nav-h: 60px;                     /* altura aprox. navbar para scroll-padding */
 }
 
 /* Reset suave */
@@ -28,6 +31,7 @@ html{
   background: var(--bg);
   color: var(--fg);
   font: 400 16px/1.6 InterVariable, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+
   /* anclas suaves y compensación por navbar */
   scroll-behavior: smooth;
   scroll-padding-top: calc(var(--nav-h) + 12px);
@@ -45,6 +49,12 @@ body{
 a{ color: inherit; text-decoration: none; }
 a:hover{ text-decoration: underline; }
 
+/* Utilidad: solo lectores de pantalla */
+.sr{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
+
 /* Utilidades tipográficas */
 .h1{
   font-family: "Newsreader Variable", InterVariable, serif;
@@ -58,7 +68,12 @@ a:hover{ text-decoration: underline; }
 .container{ width:min(100% - 2rem, var(--maxw)); margin-inline:auto; }
 .section{ padding-block: clamp(48px, 8vw, 120px); }
 .center{ display:grid; place-items:center; }
-.card{ background: rgba(255,255,255,.035); border:1px solid rgba(255,255,255,.08); border-radius: var(--radius); box-shadow: var(--shadow); }
+.card{
+  background: rgba(255,255,255,.035);
+  border:1px solid var(--card-b);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
 
 /* =========================
    Tabs (Galería)
@@ -68,7 +83,7 @@ a:hover{ text-decoration: underline; }
   padding:.55rem .9rem; border-radius:999px;
   border:1px solid rgba(255,255,255,.18);
   background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-  font-weight:800; letter-spacing:.2px;
+  font-weight:800; letter-spacing:.2px; cursor:pointer;
 }
 .tab.is-active{ background: var(--fg); color: var(--bg); border-color: transparent; }
 
@@ -80,7 +95,11 @@ a:hover{ text-decoration: underline; }
 @media (min-width: 681px) and (max-width: 1024px){ .ig-grid{ grid-template-columns: repeat(4, 1fr); } }
 @media (min-width: 1025px){ .ig-grid{ grid-template-columns: repeat(5, 1fr); } }
 
-.tile{ position:relative; overflow:hidden; border-radius:8px; background: rgba(255,255,255,.035); border:1px solid rgba(255,255,255,.08); }
+.tile{
+  position:relative; overflow:hidden; border-radius:8px;
+  background: rgba(255,255,255,.035);
+  border:1px solid var(--card-b);
+}
 .tile .thumb{ width:100%; aspect-ratio:1/1; overflow:hidden; }
 .tile img{ width:100%; height:100%; object-fit:cover; display:block; }
 
@@ -108,33 +127,20 @@ a:hover{ text-decoration: underline; }
 .btn svg, .btn .i{ width:1.05em; height:1.05em; flex-shrink:0; }
 .cta-wrap{ margin-top:1.2rem; display:flex; justify-content:center; }
 
-/* =========================
-   Visor (overrides globales seguros)
-   ========================= */
-:where(.ylb__btn,.cap-btn){
+/* Fallback global mínimo para los botones del visor (cap-btn) */
+.cap-btn{
   all: unset;
   box-sizing: border-box;
   width: 40px; height: 40px;
-  border-radius: 9999px !important;
-  background: #fff !important;
-  color: #111 !important;
-  border: 1px solid #e5e7eb !important;
+  border-radius: 9999px;
+  background: #fff; color: #111;
+  border: 1px solid #e5e7eb;
   display: grid; place-items: center;
   cursor: pointer;
 }
-:where(.ylb__btn,.cap-btn) svg{ width:22px; height:22px; display:block; }
-:where(.ylb__btn--like,.cap-like).liked{ color:#e11d48 !important; }
-:where(.ylb__btn--like,.cap-like).liked svg{ fill: currentColor; }
-.ylb__caption, .ylb__btn, .ylb__btn *{ pointer-events: auto !important; }
-
-/* Tamaño “agradable” en desktop (el resto lo controla el componente) */
-@media (min-width: 1024px){
-  .ylb__sheet{ width: clamp(360px, 54vw, 880px); height: 78vh; }
-  .ylb__figure{ width: min(80%, 760px); }
-}
-/* Imagen siempre completa en el visor */
-.ylb__single img,
-.ylb__himg img{ max-width:100%; max-height:100%; object-fit:contain; }
+.cap-btn svg{ width:22px; height:22px; display:block; }
+.cap-like.liked{ color:#e11d48; }
+.cap-like.liked svg{ fill: currentColor; }
 
 /* =========================
    Animaciones por scroll (opt-in)
@@ -167,5 +173,5 @@ a:hover{ text-decoration: underline; }
 .sticky-wrap{ position:relative; height:200svh; }
 .sticky{ position:sticky; top:0; height:100svh; display:grid; place-items:center; }
 
-/* Performance hints (fuera de .ig-grid; antes estaba mal anidado) */
+/* Hints de performance */
 .hero-visual, .parallax-card{ will-change: transform; }

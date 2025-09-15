@@ -15,40 +15,61 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         action="/success"
         class="form"
       >
-        <!-- Campos ocultos requeridos por Netlify -->
+        <!-- Requerido por Netlify -->
         <input type="hidden" name="form-name" value="contacto" />
+        <!-- Honeypot (oculto para humanos) -->
         <p hidden>
-          <label>No rellenar: <input name="bot-field" /></label>
+          <label>Si eres humano, deja esto vacío: <input name="bot-field" /></label>
         </p>
 
         <div class="row">
-          <label>Nombre
-            <input type="text" name="nombre" required />
-          </label>
-        </div>
-        <div class="row">
-          <label>Email
-            <input type="email" name="email" required />
-          </label>
-        </div>
-        <div class="row">
-          <label>Mensaje
-            <textarea name="mensaje" rows="6" required></textarea>
-          </label>
+          <label for="f-nombre">Nombre</label>
+          <input id="f-nombre" name="nombre" type="text" required autocomplete="name" />
         </div>
 
-        <button class="btn" type="submit">Enviar</button>
+        <div class="row">
+          <label for="f-email">Email</label>
+          <input id="f-email" name="email" type="email" required autocomplete="email" inputmode="email" />
+        </div>
+
+        <div class="row">
+          <label for="f-msg">Mensaje</label>
+          <textarea id="f-msg" name="mensaje" rows="6" required></textarea>
+        </div>
+
+        <!-- reCAPTCHA de Netlify (opcional, si lo activas en el panel) -->
+        <!-- <div data-netlify-recaptcha="true"></div> -->
+
+        <button class="btn btn-primary" type="submit" id="send-btn">Enviar</button>
+        <p id="sending" class="hint" aria-live="polite" style="display:none">Enviando…</p>
       </form>
     </div>
   </section>
 
   <style>
-    .form{ display:grid; gap:12px; margin-top:12px }
-    .row label{ display:grid; gap:6px }
+    .form{ display:grid; gap:14px; margin-top:14px }
+    .row{ display:grid; gap:6px }
+    label{ font-weight:700 }
     input, textarea{
-      padding:.7rem .9rem; border-radius:10px; border:1px solid rgba(255,255,255,.2);
-      background:rgba(255,255,255,.06); color:inherit; font:inherit
+      padding:.75rem .9rem; border-radius:10px;
+      border:1px solid rgba(255,255,255,.20);
+      background:rgba(255,255,255,.06);
+      color:inherit; font:inherit
     }
-    input:focus, textarea:focus{ outline:2px solid rgba(255,255,255,.3); outline-offset:2px }
+    input:focus, textarea:focus{
+      outline:2px solid rgba(255,255,255,.3); outline-offset:2px
+    }
+    .hint{ opacity:.8; margin:.25rem 0 0 }
   </style>
+
+  <script is:inline>
+    // Previene doble envío y muestra "Enviando…" (Netlify redirige después a /success)
+    const form = document.currentScript.closest('form');
+    const btn  = form?.querySelector('#send-btn');
+    const hint = form?.querySelector('#sending');
+    form?.addEventListener('submit', () => {
+      btn?.setAttribute('disabled','true');
+      if (hint) hint.style.display = 'block';
+    });
+  </script>
 </BaseLayout>

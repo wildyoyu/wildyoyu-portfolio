@@ -1,16 +1,34 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
-<BaseLayout title="¡Mensaje enviado!" description="Gracias por escribir">
+<BaseLayout title="¡Mensaje enviado!" description="Gracias por escribir" noindex={true}>
   <section class="section">
     <div class="container" style="max-width:720px; text-align:center">
       <h1 class="h1">¡Gracias! 🎉</h1>
       <p class="lead">He recibido tu mensaje. Te responderé en cuanto lo lea.</p>
-      <p style="margin: 14px 0 24px">Mientras tanto, puedes volver a la galería o a la portada:</p>
-      <p>
-        <a class="btn" href="/">Volver a inicio</a>
-        <a class="btn" href="/gallery" style="margin-left:8px">Ir a la galería</a>
+
+      <p style="margin: 14px 0 24px">
+        Mientras tanto, puedes volver a la galería o a la portada:
       </p>
+
+      <p class="cta-row">
+        <a class="btn btn-primary" href="/gallery">Ir a la galería</a>
+        <a class="btn btn-outline" href="/" style="margin-left:8px">Volver a inicio</a>
+      </p>
+
+      <p class="hint">Si no ves mi respuesta en 24–48h, revisa tu carpeta de spam.</p>
     </div>
   </section>
+
+  <style>
+    .cta-row { display:inline-flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+    .hint { opacity:.8; margin-top:10px; font-size:.95rem; }
+  </style>
+
+  <script is:inline>
+    // Evita el aviso de "volver a enviar" si el usuario recarga o vuelve a esta página.
+    if (history && 'replaceState' in history) {
+      history.replaceState(null, '', location.href);
+    }
+  </script>
 </BaseLayout>

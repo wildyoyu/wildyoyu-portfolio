@@ -1,5 +1,5 @@
 ---
-import '/src/styles/global.css';
+import '@/styles/global.css';
 import NavBar from '../components/NavBar.astro';
 import Footer from '../components/Footer.astro';
 import Lightbox from '../components/Lightbox.astro';
@@ -12,7 +12,7 @@ const {
   lang = 'es'
 } = Astro.props;
 
-const site = Astro.site;
+const site = Astro.site;                          // define "site" en astro.config.* para tener canonical absoluto
 const pathname = Astro.url?.pathname ?? '/';
 const canonical = site ? new URL(pathname, site).href : undefined;
 const ogAbs = site ? new URL(ogImage, site).href : ogImage;
@@ -26,19 +26,23 @@ const jsonLd = {
 };
 ---
 <!doctype html>
-<html lang={lang} class="h-full">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="description" content={description} />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="referrer" content="no-referrer-when-downgrade" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#0b0d10" />
     <title>{title}</title>
 
     {canonical && <link rel="canonical" href={canonical} />}
+
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <meta name="theme-color" content="#0b0d10" />
     {noindex && <meta name="robots" content="noindex,nofollow" />}
 
-    {/* Open Graph / Twitter */}
+    <!-- Open Graph / Twitter -->
     <meta property="og:type" content="website" />
     {canonical && <meta property="og:url" content={canonical} />}
     <meta property="og:title" content={title} />
@@ -51,18 +55,17 @@ const jsonLd = {
     <meta name="twitter:image" content={ogAbs} />
 
     <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
-    <meta name="color-scheme" content="dark light" />
   </head>
 
-  <body class="min-h-screen">
+  <body>
     <NavBar />
     <main><slot /></main>
     <Footer />
 
-    {/* Lightbox SOLO aquí para evitar duplicados */}
+    <!-- Lightbox SOLO aquí para evitar duplicados -->
     <Lightbox />
 
-    {/* Carga segura del módulo con Astro.resolve (evita rutas rotas) */}
+    <!-- Fallback de scroll y pequeños fixes de UX: sirve desde /public -->
     <script src="/scripts/scroll-fallback.js" defer></script>
   </body>
 </html>

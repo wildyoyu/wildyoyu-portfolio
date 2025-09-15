@@ -3,24 +3,58 @@ const title = "Wildyoyu — Macro & Wildlife";
 const lead =
   "Un portfolio minimalista centrado en el detalle: texturas, ojos compuestos, alas iridiscentes y escenas de vida salvaje.";
 ---
+
 <section class="section sticky-wrap" aria-label="Presentación">
   <div class="sticky">
     <div class="container" style="text-align:center">
-      <h1 class="h1" style="margin:0 0 .6rem 0">{title}</h1>
-      <p class="lead" style="margin:0 auto 2rem auto">{lead}</p>
+      <header class="hero__head">
+        <h1 class="h1" style="margin:0 0 .6rem 0">{title}</h1>
+        <p class="lead hero__lead">{lead}</p>
+      </header>
 
-      <img
-        class="hero-visual shadow"
-        src="/photos/hero.webp"
-        alt="Macrofotografía de [especie] sobre [planta] — nombre científico"
-        width="2560"
-        height="1440"
-        style="aspect-ratio: 16 / 9; object-fit: cover;"
-      />
+      <figure class="hero__figure shadow" style="margin:0 auto;">
+        <picture>
+          <!-- WebP responsive -->
+          <source
+            type="image/webp"
+            srcset="/photos/hero-1280.webp 1280w, /photos/hero-1920.webp 1920w, /photos/hero.webp 2560w"
+            sizes="(max-width: 900px) 100vw, 1100px" />
+          <!-- Fallback (opcional si tienes JPG): -->
+          <!-- <source srcset="/photos/hero-1280.jpg 1280w, /photos/hero-1920.jpg 1920w, /photos/hero.jpg 2560w"
+                   sizes="(max-width: 900px) 100vw, 1100px" /> -->
+          <img
+            class="hero-visual"
+            src="/photos/hero.webp"
+            alt="Escena macro: [describe brevemente el sujeto y contexto]"
+            width="2560" height="1440"
+            style="aspect-ratio:16/9; object-fit:cover;"
+            fetchpriority="high" decoding="async" />
+        </picture>
+        <figcaption class="sr">Imagen de portada del portfolio</figcaption>
+      </figure>
 
-      <p class="lead" style="margin:1rem auto 0; font-size:clamp(.95rem,1.7vw,1.05rem);">
+      <div class="cta-wrap">
+        <a class="btn btn-primary btn-xl" href="/gallery">Ir a la galería</a>
+      </div>
+
+      <p class="lead" style="margin:1rem auto 0; font-size:clamp(.95rem,1.7vw,1.05rem); opacity:.8;">
         Desplázate ↓ para ver el efecto
       </p>
     </div>
   </div>
+
+  <style>
+    .hero__head { max-width: 900px; margin: 0 auto 1rem; }
+    .hero__lead { margin: 0 auto 1.2rem; }
+    .hero__figure { max-width: 1100px; }
+    /* En móviles, que la imagen no se haga demasiado alta */
+    @media (max-width: 680px){
+      .hero__figure img { max-height: 62vh; object-position:center; }
+    }
+    /* Texto solo lectores de pantalla */
+    .sr{
+      position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+      overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+    }
+  </style>
 </section>

@@ -1,17 +1,18 @@
 ---
 const name  = "wildyoyu";
 const about = "Apasionado por la naturaleza y en general por el mundo en el que vivimos: wildlife, macro y espacio exterior. Busco el detalle y la historia en cada escena.";
-// Sube tu foto a /public/me.jpg o cambia la ruta:
+// Sube tu foto a /public/me.png o cambia la ruta:
 const photo = "/me.png";
 ---
-<section class="section">
+<section class="section" aria-label="Introducción">
   <div class="container intro">
     <figure class="intro-avatar">
-      <div class="avatar shadow">
+      <div class="avatar">
         <img
           src={photo}
           alt={`Retrato de ${name}`}
-          width="800" height="1000" loading="eager" decoding="async"
+          width="800" height="1000"
+          loading="eager" decoding="async"
         />
       </div>
       <figcaption class="sr">Retrato de {name}</figcaption>
@@ -23,7 +24,7 @@ const photo = "/me.png";
 
       <div class="intro-box">
         <p class="lead" style="margin:0;">
-          En este espacio comparto mis momentos. Si quieres ver o saber más a cerca de mí, ¡echale un vistazo!
+          En este espacio comparto mis momentos. Si quieres ver o saber más acerca de mí, ¡échale un vistazo!
         </p>
 
         <div class="btn-row" style="margin-top:.8rem;">
@@ -65,15 +66,16 @@ const photo = "/me.png";
     }
     @media (max-width: 900px){ .intro{ grid-template-columns: 1fr; } }
 
-    /* —— Avatar circular (30% más pequeño que antes) —— */
+    /* —— Avatar circular (30% más pequeño) —— */
     .intro-avatar{ justify-self:center; margin:0; }
     .avatar{
-      width: min(252px, 24vw);   /* antes: min(360px, 34vw) → 30% más pequeño */
-      aspect-ratio: 1 / 1;       /* cuadrado perfecto */
-      border-radius: 9999px;     /* círculo */
+      width: min(252px, 24vw);   /* antes ~360px → 30% menos */
+      aspect-ratio: 1 / 1;       /* círculo perfecto */
+      border-radius: 9999px;
       overflow: hidden;
+      /* Borde fino que combina con el tema */
       box-shadow: 0 0 0 2px rgba(255,255,255,.15);
-
+      background: rgba(255,255,255,.03);
     }
     .avatar img{
       width: 100%; height: 100%;
@@ -91,6 +93,10 @@ const photo = "/me.png";
     .btn-row{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
     @media (max-width: 600px){ .btn-row{ justify-content:flex-start; } }
 
-    .sr{ position:absolute; left:-9999px; }
+    /* Texto solo para lectores de pantalla (si no lo tienes global) */
+    .sr{
+      position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+      overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+    }
   </style>
 </section>

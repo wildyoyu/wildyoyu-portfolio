@@ -5,18 +5,17 @@ const tiktokUrl    = 'https://www.tiktok.com/@wildyoyu_';
 ---
 <footer class="site-footer">
   <div class="container foot">
-    <p>© {new Date().getFullYear()} wildyoyu · Macro & Wildlife</p>
+    <p class="brand">© {new Date().getFullYear()} <strong>wildyoyu</strong> · Macro & Wildlife</p>
 
-    <nav class="links">
+    <nav class="links" aria-label="Enlaces de pie de página">
       <a href="/gallery">Galería</a>
-      <span>·</span>
+      <span class="dot" aria-hidden="true">·</span>
       <a href="/contact">Contacto</a>
-      <span>·</span>
+      <span class="dot" aria-hidden="true">·</span>
       <a href="/equipo" title="Mi equipo de trabajo">Mi equipo</a>
-      <span>·</span>
+      <span class="dot" aria-hidden="true">·</span>
       <a href={instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-        <!-- icono Instagram -->
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.6"/>
           <circle cx="12" cy="12" r="3.6" stroke="currentColor" stroke-width="1.6"/>
           <circle cx="17.3" cy="6.7" r="1.1" fill="currentColor"/>
@@ -24,8 +23,7 @@ const tiktokUrl    = 'https://www.tiktok.com/@wildyoyu_';
         <span class="sr">Instagram</span>
       </a>
       <a href={tiktokUrl} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
-        <!-- icono TikTok -->
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M14.5 3c.5 2.3 1.9 3.9 4.3 4.3v3.1c-1.7-.1-3.2-.7-4.3-1.6v5.7a6.6 6.6 0 11-6.6-6.6c.6 0 1.2.1 1.8.3v3.2a3.5 3.5 0 00-1.8-.5 3.4 3.4 0 103.4 3.4V3h3.2Z"/>
         </svg>
         <span class="sr">TikTok</span>
@@ -35,9 +33,45 @@ const tiktokUrl    = 'https://www.tiktok.com/@wildyoyu_';
 
   <style>
     .site-footer{
-      border-top:1px solid rgba(255,255,255,.06);
-      padding-block: 28px; margin-top: 40px;
+      border-top:1px solid rgba(255,255,255,.08);
+      padding-block:28px;
+      margin-top:40px;
+      background: rgba(255,255,255,.035);
     }
     .foot{
       display:flex; justify-content:space-between; align-items:center; gap:12px;
-      flex-wrap: wrap;
+      flex-wrap:wrap;
+    }
+    .brand{ margin:0; font-size:.95rem; opacity:.9; }
+    .links{
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    }
+    .links a{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:.35rem .6rem; border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      text-decoration:none;
+      transition: background .15s ease, border-color .15s ease, transform .15s ease;
+    }
+    .links a:hover{
+      background:rgba(255,255,255,.06);
+      border-color:rgba(255,255,255,.14);
+      transform: translateY(-1px);
+    }
+    .links svg{
+      width:20px; height:20px; display:block;
+    }
+    .dot{ opacity:.35; }
+    @media (max-width:520px){
+      .dot{ display:none; }
+      .links{ gap:8px; }
+    }
+
+    /* Texto solo para lectores de pantalla */
+    .sr{
+      position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+      overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+    }
+  </style>
+</footer>

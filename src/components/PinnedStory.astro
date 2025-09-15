@@ -1,16 +1,50 @@
 ---
-const steps = [
-  { title: "El detalle importa", text: "Microtexturas, escamas, ojos compuestos: donde empieza la historia." },
-  { title: "Luz y paciencia",   text: "Esperar el gesto justo. Control de reflejos y profundidad mínima." },
-  { title: "Respeto al entorno", text: "Distancia, cero molestia y mínima huella. La foto nunca por encima." },
-];
+import { getCollection } from 'astro:content';
+
+/** Props opcionales */
+const {
+  useFeatured = false,                                   // si true, usará la primera foto con featured:true
+  photo = '/photos/hero.webp',                           // fallback si no hay featured
+  steps = [
+    { title: 'El detalle importa', text: 'Microtexturas, escamas, ojos compuestos: donde empieza la historia.' },
+    { title: 'Luz y paciencia',   text: 'Esperar el gesto justo. Control de reflejos y profundidad mínima.' },
+    { title: 'Respeto al entorno', text: 'Distancia, cero molestia y mínima huella. La foto nunca por encima.' },
+  ],
+  openInLightbox = true,                                  // si true, clic abre tu Lightbox
+  alt = 'Secuencia principal de la historia visual'
+} = Astro.props;
+
+// Si se pide usar la destacada:
+let cover = photo;
+if (useFeatured) {
+  const shots = await getCollection('shots');
+  const feat = shots.find((e) => e.data.featured);
+  if (feat?.data?.src) cover = feat.data.src;
+}
 ---
+
 <section class="sticky-wrap" aria-label="Historia visual">
   <div class="sticky">
     <div class="container pin-grid">
-      <figure class="pin-visual shadow">
-        <img src="/photos/hero.webp" alt="Secuencia principal de la historia visual" width="2560" height="1440" loading="eager" />
+      <figure class="pin-visual card">
+        {openInLightbox ? (
+          <button
+            class="lb-trigger"
+            type="button"
+            data-src={cover}
+            data-title="Historia visual"
+            data-alt={alt}
+            style="display:block;width:100%;padding:0;border:0;background:none;cursor:zoom-in"
+            aria-label="Abrir imagen a pantalla completa"
+          >
+            <img src={cover} alt={alt} width="2560" height="1440" loading="eager" decoding="async" />
+          </button>
+        ) : (
+          <img src={cover} alt={alt} width="2560" height="1440" loading="eager" decoding="async" />
+        )}
+        <figcaption class="sr">Imagen principal de la historia</figcaption>
       </figure>
+
       <div class="pin-steps">
         {steps.map((s, i) => (
           <article class="pin-step" style={`--i:${i}`}>
@@ -23,22 +57,40 @@ const steps = [
   </div>
 
   <style>
-    .pin-grid { display:grid; grid-template-columns: 1.1fr .9fr; gap: clamp(18px,3vw,36px); align-items:center; }
-    @media (max-width:900px){ .pin-grid { grid-template-columns:1fr; } }
-
-    .pin-visual {
-      view-timeline-name: --pin; view-timeline-axis:block; animation-timeline: --pin; animation-name: pin-zoom;
-      animation-range: entry 0% cover 80%; animation-fill-mode: both; overflow: clip; border-radius: var(--radius);
+    .pin-grid{
+      display:grid; grid-template-columns: 1.1fr .9fr;
+      gap: clamp(18px,3vw,36px); align-items:center;
     }
-    .pin-visual img { display:block; width:100%; height:auto; transform-origin:center; }
-    @keyframes pin-zoom { from { transform: scale(0.92); opacity:.92; } to { transform: scale(1.12); opacity:1; } }
+    @media (max-width:900px){ .pin-grid{ grid-template-columns:1fr; } }
 
-    .pin-steps { display:flex; flex-direction:column; gap: clamp(18px,2.2vw,28px); }
-    .pin-step {
-      view-timeline-name: --pin; view-timeline-axis:block; animation-timeline: --pin; animation-name: fade-in-out; animation-fill-mode: both;
-      animation-range: entry calc(var(--i,0)*33%) cover calc((var(--i,0)+1)*33%); opacity:.25;
+    .pin-visual{
+      view-timeline-name: --pin; view-timeline-axis:block;
+      animation-timeline: --pin; animation-name: pin-zoom;
+      animation-range: entry 0% cover 80%; animation-fill-mode: both;
+      overflow: clip; border-radius: var(--radius);
     }
-    @keyframes fade-in-out { 0%{opacity:.15; transform:translateY(8px);} 35%{opacity:1; transform:translateY(0);} 65%{opacity:1;} 100%{opacity:.15; transform:translateY(-8px);} }
-    .pin-title { font-weight:700; letter-spacing:.2px; }
+    .pin-visual img{ display:block; width:100%; height:auto; transform-origin:center; }
+    @keyframes pin-zoom{ from{ transform: scale(0.92); opacity:.92; } to{ transform: scale(1.12); opacity:1; } }
+
+    .pin-steps{ display:flex; flex-direction:column; gap: clamp(18px,2.2vw,28px); }
+    .pin-step{
+      view-timeline-name: --pin; view-timeline-axis:block;
+      animation-timeline: --pin; animation-name: fade-in-out; animation-fill-mode: both;
+      animation-range: entry calc(var(--i,0)*33%) cover calc((var(--i,0)+1)*33%);
+      opacity:.25;
+    }
+    @keyframes fade-in-out{
+      0%{opacity:.15; transform:translateY(8px);}
+      35%{opacity:1; transform:translateY(0);}
+      65%{opacity:1;}
+      100%{opacity:.15; transform:translateY(-8px);}
+    }
+    .pin-title{ font-weight:700; letter-spacing:.2px; }
+
+    /* Texto solo para lectores de pantalla */
+    .sr{
+      position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+      overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+    }
   </style>
 </section>
