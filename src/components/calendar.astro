@@ -21,13 +21,12 @@ const month = now.getMonth() + 1;
       </header>
 
       <div class="cal__grid">
-        <!-- cabecera de días -->
+        <!-- Cabecera de días (misma altura que las celdas para simplificar) -->
         <div class="cal__dow">L</div><div class="cal__dow">M</div><div class="cal__dow">X</div>
         <div class="cal__dow">J</div><div class="cal__dow">V</div><div class="cal__dow">S</div><div class="cal__dow">D</div>
-        <!-- las celdas van por JS -->
+        <!-- Celdas del mes por JS -->
       </div>
 
-      <!-- LEYENDA con EMOJI -->
       <div class="cal__legend" style="margin-top:6px">
         <span class="pill"><span class="emo">🌙</span> Luna</span>
         <span class="pill"><span class="emo">☄️</span> Lluvia</span>
@@ -45,57 +44,60 @@ const month = now.getMonth() + 1;
 
   <style>
     .cal{display:grid; gap:12px}
-
     .cal__hdr{display:flex; align-items:center; justify-content:space-between}
     .cal__title{text-transform:capitalize; font-weight:900}
 
-    /* Contenedor del calendario con borde exterior */
+    /* === GRID con celdas de altura fija === */
     .cal__grid{
-      display:grid; grid-template-columns:repeat(7,1fr);
-      border:1px solid var(--card-b, rgba(255,255,255,.16));
+      --row-h: 92px; /* cambia si quieres celdas más altas/bajas */
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      grid-auto-rows: var(--row-h);
+      border:1px solid var(--card-b, rgba(255,255,255,.18));
       border-radius:12px; overflow:hidden;
       background: transparent;
     }
 
-    /* Cabecera DOW */
     .cal__dow{
-      min-height:40px; display:grid; place-items:center;
+      display:grid; place-items:center;
       font-weight:800; background:transparent;
-      /* sin outline arriba para no duplicar con el borde del contenedor */
-      outline: none;
+      outline: 1px solid rgba(255,255,255,.18);
+      outline-offset: -1px;
     }
 
-    /* Celdas del mes: TODAS las divisorias con outline interno */
+    /* Cada celda dibuja su propia línea → todas las divisorias se ven */
     .cal__cell{
-      min-height:64px; display:grid; align-content:start; padding:8px 10px; background:transparent;
-      border:0;                                   /* anulamos borders previos */
-      outline: 1px solid rgba(255,255,255,.16);   /* línea visible SIEMPRE */
-      outline-offset: -1px;                       /* pegada al borde */
+      position:relative;
+      display:grid; place-items:center;   /* centra el emoji */
+      background:transparent;
+      outline: 1px solid rgba(255,255,255,.18);
+      outline-offset: -1px;
     }
     .cal__cell.is-empty{ background:linear-gradient(180deg, rgba(255,255,255,.03), transparent) }
 
-    .cal__num{ font-weight:900; opacity:.95 }
-    .cal__events{ display:flex; gap:6px; margin-top:auto; align-items:flex-end; min-height:20px; flex-wrap:wrap }
-
-    /* Evento dentro de la celda (emoji dentro de una píldora sutil) */
+    /* Número arriba-izquierda, emoji centrado */
+    .cal__num{
+      position:absolute; top:6px; left:8px;
+      font-weight:900; opacity:.95; pointer-events:none;
+    }
     .cal__e{
-      display:inline-flex; align-items:center; justify-content:center;
-      width:20px; height:20px; border-radius:999px;
+      display:inline-grid; place-items:center;
+      width:28px; height:28px; border-radius:999px;
       background: rgba(255,255,255,.06);
-      border:1px solid var(--card-b, rgba(255,255,255,.16));
-      font-size:12px; line-height:1;
+      border:1px solid var(--card-b, rgba(255,255,255,.18));
+      font-size:16px; line-height:1;
     }
 
-    /* Leyenda como chips con emoji */
+    /* Leyenda */
     .cal__legend{display:flex; flex-wrap:wrap; gap:10px; opacity:.95; font-size:14px}
     .cal__legend .pill{
       display:inline-flex; align-items:center; gap:8px;
       padding:4px 10px; border-radius:999px;
       background: rgba(255,255,255,.04);
-      border:1px solid var(--card-b, rgba(255,255,255,.16));
+      border:1px solid var(--card-b, rgba(255,255,255,.18));
     }
     .emo{ font-size:14px; line-height:1 }
-    
+
     .cal__list ul{margin:0; padding-left:18px}
   </style>
 
@@ -110,7 +112,7 @@ const month = now.getMonth() + 1;
 
     const monthMatrix = (y,m) => {
       const first = new Date(y, m-1, 1);
-      const start = (first.getDay() + 6) % 7; // Lunes=0
+      const start = (first.getDay() + 6) % 7; // lunes=0
       const days  = new Date(y, m, 0).getDate();
       const cells = [];
       for(let i=0;i<start;i++) cells.push({d:null});
@@ -126,7 +128,7 @@ const month = now.getMonth() + 1;
       ROOT.dataset.year=y; ROOT.dataset.month=m;
       TITLE.textContent = new Date(y, m-1, 1).toLocaleString('es-ES',{month:'long', year:'numeric'});
 
-      // elimina celdas anteriores (dejamos los 7 .cal__dow)
+      // limpia celdas anteriores (dejamos los 7 .cal__dow)
       GRID.querySelectorAll('.cal__cell').forEach(n=>n.remove());
 
       const byDay = new Map();
@@ -139,22 +141,24 @@ const month = now.getMonth() + 1;
 
         if (cell.d){
           const num=document.createElement('div'); num.className='cal__num'; num.textContent=String(cell.d);
-          const evs=document.createElement('div'); evs.className='cal__events';
-          (byDay.get(cell.iso)||[]).forEach(ev=>{
+          div.appendChild(num);
+
+          const events = byDay.get(cell.iso)||[];
+          if (events.length){
             const e=document.createElement('span');
             e.className='cal__e';
-            e.textContent = TYPE_EMOJI[ev.type||'otro'];
-            e.title = ev.title;
-            evs.appendChild(e);
-          });
-          div.appendChild(num); div.appendChild(evs);
+            e.textContent = TYPE_EMOJI[events[0].type || 'otro']; // primer evento centrado
+            e.title = events.map(ev=>ev.title).join(' • ');
+            div.appendChild(e);
+          }
         }
         frag.appendChild(div);
       }
       GRID.appendChild(frag);
 
       const today = new Date(new Date().toDateString());
-      UPC.innerHTML = EVS.filter(ev => new Date(ev.date) >= today)
+      UPC.innerHTML = EVS
+        .filter(ev => new Date(ev.date) >= today)
         .sort((a,b)=> new Date(a.date) - new Date(b.date))
         .slice(0,8)
         .map(ev => `<li><strong>${new Date(ev.date).toLocaleDateString('es-ES',{day:'2-digit',month:'short'})}</strong> — ${ev.title}</li>`)
