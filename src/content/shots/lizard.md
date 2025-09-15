@@ -1,6 +1,6 @@
 ---
 title: "Salamanquesa (chivín). Familia de los gekkos. Santorrostro en Mocejón"
-src: "/photos/antenna.webp"     
+src: "/photos/lizard.webp"     
 alt: "Cría de salamanquesa."
 w: 1920                        
 h: 1200                         

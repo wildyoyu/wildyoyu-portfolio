@@ -9,7 +9,7 @@ const month = now.getMonth() + 1;
   <div class="container">
     <h2 class="h2" style="margin-bottom:.6rem;">Calendario astronómico</h2>
 
-    <div class="cal card" id="cal-root"
+    <div class="cal" id="cal-root"
          data-year={year} data-month={month}
          data-events={JSON.stringify(astroEvents)}>
       <header class="cal__hdr">
@@ -21,14 +21,15 @@ const month = now.getMonth() + 1;
       </header>
 
       <div class="cal__grid">
-        <!-- Cabecera de días (misma altura que las celdas para simplificar) -->
         <div class="cal__dow">L</div><div class="cal__dow">M</div><div class="cal__dow">X</div>
         <div class="cal__dow">J</div><div class="cal__dow">V</div><div class="cal__dow">S</div><div class="cal__dow">D</div>
-        <!-- Celdas del mes por JS -->
+        <!-- celdas por JS -->
       </div>
 
+      <!-- Leyenda con Luna llena y Superluna diferenciadas -->
       <div class="cal__legend" style="margin-top:6px">
-        <span class="pill"><span class="emo">🌙</span> Luna</span>
+        <span class="pill"><span class="emo">🌕</span> Luna llena</span>
+        <span class="pill"><span class="emo">🌕✨</span> Superluna</span>
         <span class="pill"><span class="emo">☄️</span> Lluvia</span>
         <span class="pill"><span class="emo">🪐</span> Planeta</span>
         <span class="pill"><span class="emo">🌒</span> Eclipse</span>
@@ -43,49 +44,64 @@ const month = now.getMonth() + 1;
   </div>
 
   <style>
-    .cal{display:grid; gap:12px}
+    /* anchura contenida */
+    .cal{
+      max-width: min(92vw, 920px);
+      margin-inline: auto;
+      display:grid; gap:12px;
+    }
+
     .cal__hdr{display:flex; align-items:center; justify-content:space-between}
     .cal__title{text-transform:capitalize; font-weight:900}
 
-    /* === GRID con celdas de altura fija === */
+    /* Retícula por gradiente (anti-alias robusto) */
     .cal__grid{
-      --row-h: 92px; /* cambia si quieres celdas más altas/bajas */
+      --row-h: 66px;
+      --line: rgba(255,255,255,.28);
+      --rows: 7; /* la actualiza JS */
       display:grid;
-      grid-template-columns:repeat(7,1fr);
+      grid-template-columns: repeat(7, 1fr);
       grid-auto-rows: var(--row-h);
-      border:1px solid var(--card-b, rgba(255,255,255,.18));
       border-radius:12px; overflow:hidden;
-      background: transparent;
+      border:1px solid var(--line);
+      background-image:
+        linear-gradient(to right, var(--line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+      background-size:
+        calc(100%/7) 100%,
+        100% calc(100%/var(--rows));
+      background-position: 0 0, 0 0;
+      background-repeat: repeat;
     }
 
     .cal__dow{
       display:grid; place-items:center;
       font-weight:800; background:transparent;
-      outline: 1px solid rgba(255,255,255,.18);
-      outline-offset: -1px;
     }
 
-    /* Cada celda dibuja su propia línea → todas las divisorias se ven */
     .cal__cell{
       position:relative;
-      display:grid; place-items:center;   /* centra el emoji */
+      display:grid; place-items:center; /* centra el emoji */
       background:transparent;
-      outline: 1px solid rgba(255,255,255,.18);
-      outline-offset: -1px;
     }
     .cal__cell.is-empty{ background:linear-gradient(180deg, rgba(255,255,255,.03), transparent) }
 
-    /* Número arriba-izquierda, emoji centrado */
+    /* Número del día: verticalmente centrado a la izquierda */
     .cal__num{
-      position:absolute; top:6px; left:8px;
+      position:absolute; left:8px; top:50%;
+      transform: translateY(-50%);
       font-weight:900; opacity:.95; pointer-events:none;
     }
+
+    /* Badge del emoji centrado */
     .cal__e{
       display:inline-grid; place-items:center;
-      width:28px; height:28px; border-radius:999px;
+      min-width:26px; height:26px; padding:0 4px;
+      border-radius:999px;
       background: rgba(255,255,255,.06);
-      border:1px solid var(--card-b, rgba(255,255,255,.18));
-      font-size:16px; line-height:1;
+      border:1px solid rgba(255,255,255,.22);
+      font-size:15px; line-height:1;
+      white-space:nowrap; /* para "🌕✨" que son dos símbolos */
     }
 
     /* Leyenda */
@@ -94,7 +110,7 @@ const month = now.getMonth() + 1;
       display:inline-flex; align-items:center; gap:8px;
       padding:4px 10px; border-radius:999px;
       background: rgba(255,255,255,.04);
-      border:1px solid var(--card-b, rgba(255,255,255,.18));
+      border:1px solid rgba(255,255,255,.18);
     }
     .emo{ font-size:14px; line-height:1 }
 
@@ -108,7 +124,22 @@ const month = now.getMonth() + 1;
     const UPC = ROOT.querySelector('.cal__upcoming');
     const EVS = (() => { try { return JSON.parse(ROOT.dataset.events || '[]'); } catch { return []; } })();
 
-    const TYPE_EMOJI = { luna:'🌙', lluvia:'☄️', planeta:'🪐', eclipse:'🌒', otro:'✦' };
+    // Emoji por tipo y caso especial superluna
+    const TYPE_EMOJI = { luna:'🌕', lluvia:'☄️', planeta:'🪐', eclipse:'🌒', otro:'✦' };
+    function emojiFor(ev){
+      if ((ev.type||'') === 'luna') return ev.super || /superluna/i.test(ev.title) ? '🌕✨' : '🌕';
+      return TYPE_EMOJI[ev.type||'otro'] || '✦';
+    }
+
+    // Prioridad para elegir icono si hay varios eventos el mismo día
+    const PRIORITY = ['luna-super', 'luna', 'eclipse', 'lluvia', 'planeta', 'otro'];
+    function pickEmoji(list){
+      if (!list.length) return null;
+      // etiqueta interna para ordenar
+      const tag = (ev) => (ev.type==='luna' && (ev.super || /superluna/i.test(ev.title))) ? 'luna-super' : (ev.type || 'otro');
+      const chosen = list.slice().sort((a,b)=> PRIORITY.indexOf(tag(a)) - PRIORITY.indexOf(tag(b)) )[0];
+      return { char: emojiFor(chosen), title: list.map(e=>e.title).join(' • ') };
+    }
 
     const monthMatrix = (y,m) => {
       const first = new Date(y, m-1, 1);
@@ -128,14 +159,18 @@ const month = now.getMonth() + 1;
       ROOT.dataset.year=y; ROOT.dataset.month=m;
       TITLE.textContent = new Date(y, m-1, 1).toLocaleString('es-ES',{month:'long', year:'numeric'});
 
-      // limpia celdas anteriores (dejamos los 7 .cal__dow)
+      // limpia celdas (dejamos los 7 .cal__dow)
       GRID.querySelectorAll('.cal__cell').forEach(n=>n.remove());
+
+      const cells = monthMatrix(y,m);
+      const rows = 1 + Math.ceil(cells.length / 7);  // +1 cabecera
+      GRID.style.setProperty('--rows', rows);
 
       const byDay = new Map();
       EVS.forEach(ev => { const key = ev.date; const arr = byDay.get(key)||[]; arr.push(ev); byDay.set(key, arr); });
 
       const frag = document.createDocumentFragment();
-      for (const cell of monthMatrix(y,m)){
+      for (const cell of cells){
         const div = document.createElement('div');
         div.className = 'cal__cell' + (cell.d ? '' : ' is-empty');
 
@@ -144,11 +179,12 @@ const month = now.getMonth() + 1;
           div.appendChild(num);
 
           const events = byDay.get(cell.iso)||[];
-          if (events.length){
+          const em = pickEmoji(events);
+          if (em){
             const e=document.createElement('span');
             e.className='cal__e';
-            e.textContent = TYPE_EMOJI[events[0].type || 'otro']; // primer evento centrado
-            e.title = events.map(ev=>ev.title).join(' • ');
+            e.textContent = em.char;      // "🌕" o "🌕✨"
+            e.title = em.title;           // tooltip con todos los eventos del día
             div.appendChild(e);
           }
         }

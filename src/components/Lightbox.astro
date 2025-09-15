@@ -1,8 +1,10 @@
 ---
 /**
- * Visor 70% ancho / 90vh, imagen SIEMPRE completa (contain),
- * pie blanco sticky con Like+Share, carrusel horizontal si hay `srcs`,
- * abre en la miniatura pulsada (slug > idx), y sincroniza hash #cat:slug|idx.
+ * Visor (dialog) con:
+ *  - ⤓ Ver entera (original) → nueva pestaña
+ *  - ❤️ Like & ↗ Compartir
+ *  - Carrusel horizontal si hay "srcs"
+ *  - Abre en la miniatura pulsada (usa slug o índice)
  */
 ---
 <dialog id="sheetviewer" class="sv" aria-label="Visor de imágenes">
@@ -19,17 +21,17 @@
   .sv{ inset:0; border:0; padding:0; background:transparent; }
   .sv[open]{ display:grid; place-items:center; }
   .sv::backdrop{ background:rgba(0,0,0,.65); }
-  .sv-backdrop{ position:fixed; inset:0; }
-
   .sv-sheet{
-    position:relative; width:clamp(320px,70vw,1180px); height:90vh;
-    background:rgba(12,14,16,.92); backdrop-filter:blur(6px);
-    border-radius:18px; outline:1px solid rgba(255,255,255,.08);
-    box-shadow:0 30px 100px rgba(0,0,0,.5);
-    overflow:hidden; display:grid; grid-template-rows:auto 1fr;
+    position:relative; width: clamp(320px, 46vw, 760px); height: 76vh;
+    background: rgba(12,14,16,.92); backdrop-filter: blur(6px);
+    border-radius: 18px; outline: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 30px 100px rgba(0,0,0,.5);
+    overflow: hidden; display:grid; grid-template-rows: auto 1fr;
   }
+  @media (max-width: 900px){ .sv-sheet{ width:min(92vw, 920px); height:84vh; } }
+
   .sv-top{ display:flex; align-items:center; gap:8px; padding:10px;
-    background:linear-gradient(180deg, rgba(0,0,0,.35), transparent) }
+    background: linear-gradient(180deg, rgba(0,0,0,.35), transparent); }
   .sv-close{
     min-width:42px; height:42px; padding:0 12px; border-radius:9999px;
     border:1px solid rgba(255,255,255,.2); background:rgba(0,0,0,.35); color:#fff;
@@ -40,69 +42,49 @@
     height:100%; overflow-y:auto; overflow-x:hidden;
     scroll-snap-type:y mandatory; -webkit-overflow-scrolling:touch; overscroll-behavior-y:contain;
   }
-
   .sv-slide{
-    min-height:100%; box-sizing:border-box; padding:clamp(10px,2vw,18px);
+    min-height:100%; box-sizing:border-box; padding:clamp(10px,2vw,16px);
     scroll-snap-align:start; display:flex; align-items:center; justify-content:center;
   }
 
-  .sv-figure{
-    width:min(92%,980px);
-    display:flex; flex-direction:column; gap:12px;
-    flex:1; min-height:0;
-  }
+  .sv-figure{ width:min(92%, 960px); display:flex; flex-direction:column; gap:12px; flex:1; min-height:0; }
 
-  .sv-view{ position:relative; flex:1; min-height:0; height:var(--imgH, 70vh); }
+  .sv-view{ position:relative; flex:1; min-height:0; height: var(--imgH, 56vh); }
   .sv-single, .sv-hstrip{ width:100%; height:100%; }
 
-  .sv-single{ display:grid; place-items:center; overflow:hidden; }
-  .sv-single img{ max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; display:block; }
+  /* “Contain” fijo para que siempre quepa completa */
+  .sv-single, .sv-hstrip{ display:grid; place-items:center; overflow:hidden; }
+  .sv-single img,
+  .sv-himg img{
+    max-width:100%; max-height:100%; width:auto; height:auto; object-fit:contain; display:block;
+  }
 
-  .sv-hstrip{
-    display:flex; gap:8px; overflow-x:auto; overflow-y:hidden;
-    scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
-  }
-  .sv-himg{
-    flex:0 0 auto; height:100%; display:grid; place-items:center;
-    scroll-snap-align:center; border-radius:10px; overflow:hidden;
-    background:rgba(255,255,255,.03); outline:1px solid rgba(255,255,255,.06);
-  }
-  .sv-himg img{ height:100%; width:auto; max-width:100%; object-fit:contain; display:block; }
+  /* Carrusel horizontal */
+  .sv-hstrip{ display:flex; gap:8px; overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; }
+  .sv-himg{ flex:0 0 auto; height:100%; display:grid; place-items:center; scroll-snap-align:center; border-radius:10px; overflow:hidden; background:rgba(255,255,255,.03); outline:1px solid rgba(255,255,255,.06); }
   .sv-hstrip::-webkit-scrollbar{ display:none; }
 
-  .sv .sv-sheet .sv-reel .sv-slide .sv-figure .sv-caption{
-    position:sticky; bottom:0; width:100%;
-    background:#fff !important; color:#111 !important;
-    border-radius:12px; border:1px solid #e5e7eb !important;
-    box-shadow:0 12px 32px rgba(0,0,0,.25);
-    display:flex; align-items:center; gap:10px;
-    padding:10px 12px; z-index:5; mix-blend-mode:normal !important;
+  /* Pie blanco */
+  .sv-caption{
+    position: sticky; bottom: 0; width: 100%;
+    background:#fff; color:#111; border-radius:12px; border:1px solid #e5e7eb;
+    box-shadow: 0 12px 32px rgba(0,0,0,.25);
+    display:flex; align-items:center; gap:8px; padding:10px 10px; z-index:5;
   }
-  .cap-text{
-    min-width:0; flex:1; font-weight:800;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#111 !important;
-  }
+  .cap-text{ min-width:0; flex:1; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#111; }
   .cap-actions{ display:flex; gap:8px; }
-
   .cap-btn{
-    all:unset; box-sizing:border-box !important;
-    width:40px !important; height:40px !important; border-radius:9999px !important;
-    background:#fff !important; color:#111 !important; border:1px solid #e5e7eb !important;
-    display:grid !important; place-items:center !important; cursor:pointer !important; line-height:0 !important;
+    all:unset; box-sizing:border-box; width:40px; height:40px; border-radius:9999px;
+    background:#fff; color:#111; border:1px solid #e5e7eb;
+    display:grid; place-items:center; cursor:pointer; line-height:0;
   }
   .cap-btn svg{ width:22px; height:22px; display:block; }
-  .cap-like.liked{ color:#e11d48 !important; }
-  .cap-like.liked svg{ fill: currentColor; }
-
-  @media (min-width:1024px){
-    .sv-sheet{ width: clamp(380px, 52vw, 900px); height: 78vh; }
-    .sv-figure{ width: min(84%, 820px); }
-  }
+  .cap-like.liked{ color:#e11d48; } .cap-like.liked svg{ fill:currentColor; }
 </style>
 
 <script is:inline>
   const dialog  = document.getElementById('sheetviewer');
-  if (!dialog) console.warn('[Lightbox] dialog no encontrado');
+  if (!dialog) { console.warn('[Lightbox] No dialog'); }
   else {
     const sheet   = dialog.querySelector('.sv-sheet');
     const reel    = dialog.querySelector('.sv-reel');
@@ -112,16 +94,26 @@
     let current = 0;
     let activeCat = '';
 
-    // === Favoritos (id = slug || src) ===
-    const LS_KEY = 'yoyu_favs';
+    /* Likes con meta timestamp (para Top 3 local) */
+    const LS_KEY  = 'yoyu_favs';
+    const LS_META = 'yoyu_favs_meta';
+
     const getFavs = () => { try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch{ return []; } };
     const setFavs = (arr) => localStorage.setItem(LS_KEY, JSON.stringify(Array.from(new Set(arr))));
-    const isLiked = (id) => getFavs().includes(id);
-    function toggleLike(id){
+    const getMeta = () => { try{ return JSON.parse(localStorage.getItem(LS_META)||'{}'); }catch{ return {}; } };
+    const setMeta = (obj) => localStorage.setItem(LS_META, JSON.stringify(obj));
+    const isLiked = (slug) => getFavs().includes(slug);
+
+    function toggleLike(slug){
+      if (!slug) return false;
       const favs = new Set(getFavs());
-      favs.has(id) ? favs.delete(id) : favs.add(id);
-      setFavs([...favs]);
+      const meta = getMeta();
+      let liked;
+      if (favs.has(slug)) { favs.delete(slug); liked = false; if (meta[slug]) delete meta[slug]; }
+      else { favs.add(slug); liked = true; meta[slug] = { likedAt: Date.now() }; }
+      setFavs([...favs]); setMeta(meta);
       window.dispatchEvent(new CustomEvent('yoyu:favs-changed'));
+      return liked;
     }
 
     const uniq = (arr) => Array.from(new Set(arr.filter(Boolean)));
@@ -129,15 +121,22 @@
 
     function slideHTML(it, idx){
       const title = it.title || it.alt || '';
-      const keyId = (it.slug || it.src || ''); // id flexible
-      const liked = isLiked(keyId);
+      const liked = isLiked(it.slug||'');
       const carousel = uniq([it.src, ...(Array.isArray(it.srcs)? it.srcs: [])]);
 
       const view = (carousel.length > 1)
-        ? `<div class="sv-view"><div class="sv-hstrip" data-strip>${
-            carousel.map(s => `<div class="sv-himg"><img src="${s}" alt="${it.alt||''}" loading="lazy" decoding="async"/></div>`).join('')
-          }</div></div>`
-        : `<div class="sv-view"><div class="sv-single"><img src="${it.src}" alt="${it.alt||''}" loading="lazy" decoding="async"/></div></div>`;
+        ? `
+          <div class="sv-view">
+            <div class="sv-hstrip" data-strip>
+              ${carousel.map(s => `
+                <div class="sv-himg"><img src="${s}" alt="${it.alt||''}" loading="lazy" decoding="async"/></div>
+              `).join('')}
+            </div>
+          </div>`
+        : `
+          <div class="sv-view">
+            <div class="sv-single"><img src="${it.src}" alt="${it.alt||''}" loading="lazy" decoding="async"/></div>
+          </div>`;
 
       return `
         <section class="sv-slide" data-idx="${idx}" data-slug="${it.slug||''}">
@@ -146,9 +145,17 @@
             <div class="sv-caption">
               <div class="cap-text" title="${title.replace(/"/g,'&quot;')}">${title}</div>
               <div class="cap-actions">
+                <!-- ⤓ Ver entera (original) -->
+                <button class="cap-btn cap-open" type="button" aria-label="Ver entera (original)" title="Ver entera (original)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M21 14v7h-7"/><path d="M3 10 14 21"/>
+                  </svg>
+                </button>
+                <!-- ❤️ -->
                 <button class="cap-btn cap-like${liked?' liked':''}" type="button" aria-label="Like" title="${liked?'Quitar de favoritos':'Añadir a favoritos'}">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.1 21.35l-1.1-1.02C5.14 14.88 2 12.05 2 8.5 2 6 4 4 6.5 4c1.74 0 3.41.81 4.5 2.09C12.59 4.81 14.26 4 16 4 18.5 4 20.5 6 20.5 8.5c0 3.55-3.14 6.38-8.9 11.83l-.5.47z" fill="currentColor"/></svg>
                 </button>
+                <!-- ↗ Compartir -->
                 <button class="cap-btn cap-share" type="button" aria-label="Compartir" title="Compartir">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 16V3"/><path d="M7 8l5-5 5 5"/>
@@ -164,44 +171,22 @@
       const imgs = reel.querySelectorAll('.sv-view img');
       imgs.forEach(img => {
         if (img.complete) return;
-        img.addEventListener('load', () => {
-          if (img.closest('.sv-slide')?.dataset.idx == current) measureAndSetImgH();
-        }, { once:true });
+        img.addEventListener('load', () => { if (img.closest('.sv-slide')?.dataset.idx == current) measureAndSetImgH(); }, { once:true });
       });
     }
-
     function renderSlides(){ reel.innerHTML = items.map(slideHTML).join(''); wireImageLoads(); }
 
-    // Calcula la altura disponible para la imagen y la fija en --imgH
     function measureAndSetImgH(){
-      const headerH = dialog.querySelector('.sv-top')?.clientHeight || 0;
       const slide = reel.querySelector(`.sv-slide[data-idx="${current}"]`); if (!slide) return;
-      const cap = slide.querySelector('.sv-caption');
-      const capH = cap?.offsetHeight || 84;
-      const gap = 12; const margin = 16;
-      const avail = Math.max(240, sheet.clientHeight - headerH - capH - gap - margin);
+      const headerH = dialog.querySelector('.sv-top')?.clientHeight || 0;
+      const capH = slide.querySelector('.sv-caption')?.offsetHeight || 84;
+      const avail = Math.max(240, dialog.querySelector('.sv-sheet').clientHeight - headerH - capH - 16);
       slide.querySelector('.sv-view')?.style.setProperty('--imgH', avail + 'px');
-    }
-
-    function updateHash(push = true){
-      if (!activeCat) return;
-      const it = items[current] || {}; const slugOrIdx = it.slug || String(current);
-      if (push) history.replaceState(null,'','#'+activeCat+':'+slugOrIdx);
-    }
-
-    function syncLikeState(){
-      const slide = reel.querySelector(`.sv-slide[data-idx="${current}"]`); if(!slide) return;
-      const it = items[current] || {};
-      const key = it.slug || it.src || '';
-      const btn = slide.querySelector('.cap-like');
-      btn?.classList.toggle('liked', isLiked(key));
-      btn?.setAttribute('title', isLiked(key)?'Quitar de favoritos':'Añadir a favoritos');
     }
 
     function scrollToIndex(idx, behavior='auto'){
       current = Math.max(0, Math.min(items.length - 1, Number(idx)||0));
-      const el = reel.querySelector(`.sv-slide[data-idx="${current}"]`);
-      el?.scrollIntoView({ behavior, block:'start' });
+      reel.querySelector(`.sv-slide[data-idx="${current}"]`)?.scrollIntoView({ behavior, block:'start' });
       updateHash(); syncLikeState();
       requestAnimationFrame(measureAndSetImgH);
     }
@@ -209,11 +194,34 @@
     function updateCurrentOnScroll(){
       const slides=[...reel.querySelectorAll('.sv-slide')]; if(!slides.length) return;
       const baseTop = reel.getBoundingClientRect().top; let idx=current, min=Infinity;
-      for (let i=0;i<slides.length;i++){
-        const d=Math.abs(slides[i].getBoundingClientRect().top - baseTop);
-        if(d<min){min=d; idx=i;}
-      }
+      for (let i=0;i<slides.length;i++){ const d=Math.abs(slides[i].getBoundingClientRect().top - baseTop); if(d<min){min=d; idx=i;} }
       if (idx!==current){ current=idx; updateHash(false); syncLikeState(); measureAndSetImgH(); }
+    }
+
+    function syncLikeState(){
+      const slide = reel.querySelector(`.sv-slide[data-idx="${current}"]`); if(!slide) return;
+      const slug = slide.dataset.slug || ''; const btn = slide.querySelector('.cap-like');
+      btn?.classList.toggle('liked', isLiked(slug));
+      btn?.setAttribute('title', isLiked(slug)?'Quitar de favoritos':'Añadir a favoritos');
+    }
+
+    function getCurrentImageSrc(slide){
+      const strip = slide.querySelector('.sv-hstrip');
+      if (strip){
+        const imgs = [...strip.querySelectorAll('img')];
+        if (!imgs.length) return null;
+        const cX = strip.getBoundingClientRect().left + strip.clientWidth/2;
+        let chosen = imgs[0], best = Infinity;
+        for (const img of imgs){
+          const r = img.getBoundingClientRect();
+          const mid = r.left + r.width/2;
+          const d = Math.abs(mid - cX);
+          if (d < best){ best = d; chosen = img; }
+        }
+        return chosen.currentSrc || chosen.src || null;
+      }
+      const single = slide.querySelector('.sv-single img');
+      return single?.currentSrc || single?.src || null;
     }
 
     function openFromTrigger(btn){
@@ -228,8 +236,7 @@
       const startIdx = idxFromSlug >= 0 ? idxFromSlug : Math.max(0, Math.min(items.length-1, idxAttr));
 
       renderSlides();
-      (dialog.showModal? dialog.showModal(): dialog.setAttribute('open',''));
-      document.documentElement.style.overflow='hidden';
+      (dialog.showModal? dialog.showModal(): dialog.setAttribute('open','')); document.documentElement.style.overflow='hidden';
       requestAnimationFrame(() => { measureAndSetImgH(); requestAnimationFrame(() => scrollToIndex(startIdx,'auto')); });
     }
 
@@ -246,28 +253,22 @@
       if (dialog.open && 'close' in dialog) dialog.close();
       dialog.removeAttribute('open'); document.documentElement.style.overflow='';
     }
+    function updateHash(push = true){
+      if (!activeCat) return;
+      const it = items[current] || {}; const slugOrIdx = it.slug || String(current);
+      if (push) history.replaceState(null,'','#'+activeCat+':'+slugOrIdx);
+    }
 
-    // Delegaciones
+    /* Delegación */
     document.addEventListener('click', (e) => {
-      const btn = e.target.closest('.lb-trigger'); if (!btn) return;
-      e.preventDefault(); openFromTrigger(btn);
+      const trigger = e.target.closest('.lb-trigger'); if (trigger){ e.preventDefault(); openFromTrigger(trigger); return; }
     });
-
-    // Like/Share con actualización inmediata del botón
     reel.addEventListener('click', (e) => {
       const slide = e.target.closest('.sv-slide'); if (!slide) return;
-      const it = items[current] || {};
-      const key = (slide.dataset.slug || it.slug || it.src || '');
-
-      const likeBtn = e.target.closest('.cap-like');
-      if (likeBtn){
-        toggleLike(key);
-        likeBtn.classList.toggle('liked', isLiked(key)); // UI inmediata
-        likeBtn.setAttribute('title', isLiked(key)?'Quitar de favoritos':'Añadir a favoritos');
-        return;
-      }
-      const shareBtn = e.target.closest('.cap-share');
-      if (shareBtn){ e.preventDefault(); shareCurrent(); return; }
+      const slug = slide.dataset.slug || '';
+      if (e.target.closest('.cap-like')){ const liked = toggleLike(slug); const b=slide.querySelector('.cap-like'); b?.classList.toggle('liked', liked); b?.setAttribute('title', liked?'Quitar de favoritos':'Añadir a favoritos'); return; }
+      if (e.target.closest('.cap-share')){ e.preventDefault(); shareCurrent(); return; }
+      if (e.target.closest('.cap-open')){ const src = getCurrentImageSrc(slide); if (src) window.open(src, '_blank', 'noopener,noreferrer'); return; }
     });
 
     reel.addEventListener('scroll', updateCurrentOnScroll, { passive:true });
@@ -282,10 +283,9 @@
       if (e.key === 'Escape') close();
       if (e.key === 'ArrowDown') { e.preventDefault(); reel.scrollBy({ top: dialog.querySelector('.sv-sheet').clientHeight, behavior:'smooth' }); }
       if (e.key === 'ArrowUp')   { e.preventDefault(); reel.scrollBy({ top:-dialog.querySelector('.sv-sheet').clientHeight, behavior:'smooth' }); }
-      if (e.key.toLowerCase() === 's') shareCurrent();
+      if (e.key.toLowerCase() === 'o'){ const slide = reel.querySelector(`.sv-slide[data-idx="${current}"]`); if (!slide) return; const src = getCurrentImageSrc(slide); if (src) window.open(src, '_blank', 'noopener,noreferrer'); }
     });
 
-    // Abrir por hash #cat:slug|idx
     function openFromHash(){
       const h = location.hash.replace('#',''); if (!h || !h.includes(':')) return;
       const [cat, rest] = h.split(':'); if (!cat || !rest) return;
@@ -295,13 +295,10 @@
       const idxBySlug = findIndexBySlug(rest);
       const startIdx = idxBySlug >= 0 ? idxBySlug : Math.max(0, parseInt(rest,10) || 0);
       renderSlides();
-      (dialog.showModal? dialog.showModal(): dialog.setAttribute('open',''));
-      document.documentElement.style.overflow='hidden';
+      (dialog.showModal? dialog.showModal(): dialog.setAttribute('open','')); document.documentElement.style.overflow='hidden';
       requestAnimationFrame(() => { measureAndSetImgH(); requestAnimationFrame(() => scrollToIndex(startIdx,'auto')); });
     }
     window.addEventListener('load', openFromHash);
     window.addEventListener('resize', () => requestAnimationFrame(measureAndSetImgH), { passive:true });
-
-    console.info('[Lightbox listo ✓]');
   }
 </script>

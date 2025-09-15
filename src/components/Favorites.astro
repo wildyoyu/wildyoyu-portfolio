@@ -4,8 +4,8 @@ import { getCollection } from 'astro:content';
 const all = await getCollection('shots');
 const index = all.map(e => ({
   slug: e.slug,
-  title: e.data.title || '',
-  alt: e.data.alt || '',
+  title: e.data.title,
+  alt: e.data.alt,
   src: e.data.src,
   category: (e.data.category || '').toLowerCase(),
   w: e.data.w, h: e.data.h
@@ -13,44 +13,109 @@ const index = all.map(e => ({
 ---
 <section class="section" id="favs">
   <div class="container">
-    <h2 class="h2" style="margin-bottom:.6rem;">Favoritos de los Yoyus</h2>
-    <p class="lead" id="favs-count" style="opacity:.85; margin:0 0 .8rem 0;">Aún no hay favoritos.</p>
-    <div id="favs-grid" class="favs-grid"></div>
+    <h2 class="h2" style="margin-bottom:.4rem;">Favoritos de los Yoyus</h2>
+    <p class="lead" id="favs-count" style="opacity:.85; margin:0 0 .8rem 0;">Aún no hay favoritos. Dale ❤️ a tus fotos.</p>
+
+    <!-- Top 3 -->
+    <div id="favs-top" class="favs-top" aria-label="Top 3"></div>
+
+    <!-- Todos -->
+    <div id="favs-grid" class="favs-grid" style="margin-top:10px"></div>
+
+    <script type="application/json" id="shots-index">{JSON.stringify(index)}</script>
   </div>
 
-  <script type="application/json" id="shots-index">{JSON.stringify(index)}</script>
-
   <style>
+    .favs-top{
+      display:grid; gap:8px;
+      grid-template-columns: repeat(3, 1fr);
+      margin-bottom: 8px;
+    }
     .favs-grid{
       display:grid; gap:6px;
       grid-template-columns: repeat(3, 1fr);
     }
-    @media (min-width: 681px){ .favs-grid{ grid-template-columns: repeat(6, 1fr);} }
-    @media (min-width: 1025px){ .favs-grid{ grid-template-columns: repeat(8, 1fr);} }
-    .tile{ position:relative; overflow:hidden; border-radius:6px; background:rgba(255,255,255,.03); border:1px solid var(--card-b, rgba(255,255,255,.08)); }
+    @media (min-width: 681px){ .favs-grid{ grid-template-columns: repeat(6, 1fr); } }
+    @media (min-width: 1025px){ .favs-grid{ grid-template-columns: repeat(8, 1fr); } }
+
+    .tile{ position:relative; overflow:hidden; border-radius:8px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); }
     .tile a{ display:block; }
     .tile img{ width:100%; height:100%; object-fit:cover; display:block; aspect-ratio:1/1; }
+    .badge {
+      position:absolute; right:6px; top:6px;
+      padding:.15rem .45rem; border-radius:999px;
+      font-size:12px; font-weight:800;
+      background:rgba(255,255,255,.9); color:#111;
+      border:1px solid #e5e7eb;
+    }
   </style>
 
   <script is:inline>
     const idxEl = document.getElementById('shots-index');
-    const shots = JSON.parse(idxEl?.textContent || '[]');
-    const grid = document.getElementById('favs-grid');
-    const counter = document.getElementById('favs-count');
-    const LS_KEY = 'yoyu_favs';
+    let shots = [];
+    try { shots = JSON.parse(idxEl?.textContent || '[]'); } catch { shots = []; }
 
-    function getFavs(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch{ return []; } }
+    const bySlug = new Map(shots.map(s => [s.slug, s]));
+
+    const grid = document.getElementById('favs-grid');
+    const top3 = document.getElementById('favs-top');
+    const counter = document.getElementById('favs-count');
+
+    const LS_KEY  = 'yoyu_favs';
+    const LS_META = 'yoyu_favs_meta';
+
+    const getFavsRaw = () => { try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch{ return []; } };
+    const getMeta    = () => { try{ return JSON.parse(localStorage.getItem(LS_META)||'{}'); }catch{ return {}; } };
+
+    function normalizeFavKeys(){
+      // Une claves de la lista y del meta, y filtra vacíos/duplicados
+      const meta = getMeta();
+      const arr = [...getFavsRaw(), ...Object.keys(meta||{})].filter(Boolean);
+      return Array.from(new Set(arr));
+    }
+
+    function mapKeysToShots(keys){
+      const out = [];
+      for (const k of keys){
+        let s = bySlug.get(k);
+        // Fallback muy defensivo: si por lo que sea la clave es "parecida" a un slug (con barra), intenta la parte final
+        if (!s && k.includes('/')) s = bySlug.get(k.split('/').pop());
+        if (s) out.push(s);
+      }
+      return out;
+    }
 
     function renderFavs(){
-      const favSet = new Set(getFavs());
-      const favs = shots.filter(s => favSet.has(s.slug) || favSet.has(s.src)); // slug O src
-      counter.textContent = favs.length
-        ? `Tus favoritos (${favs.length})`
-        : 'Aún no hay favoritos.';
-      grid.innerHTML = favs.map(f => `
+      const keys = normalizeFavKeys();
+      const favs = mapKeysToShots(keys);
+      const meta = getMeta();
+
+      // Ordena por likedAt si existe; si no, lo deja al final
+      const ordered = favs
+        .map(s => ({ ...s, likedAt: meta[s.slug]?.likedAt || 0 }))
+        .sort((a,b) => b.likedAt - a.likedAt);
+
+      const top = ordered.slice(0,3);
+
+      counter.textContent = ordered.length
+        ? `Tus favoritos (${ordered.length})`
+        : 'Aún no hay favoritos. Dale ❤️ a tus fotos.';
+
+      // Top 3
+      top3.innerHTML = top.map((f, i) => `
         <div class="tile">
-          <a href="/gallery#${f.category}:${f.slug || 0}" title="${f.title||''}">
-            <img src="${f.src}" alt="${f.alt||''}" loading="lazy" decoding="async"/>
+          <a href="/gallery#${f.category}:${f.slug}" title="${(f.title||'').replace(/"/g,'&quot;')}">
+            <img src="${f.src}" alt="${(f.alt||'').replace(/"/g,'&quot;')}" loading="lazy" decoding="async"/>
+          </a>
+          <span class="badge">TOP ${i+1}</span>
+        </div>
+      `).join('');
+
+      // Todos
+      grid.innerHTML = ordered.map(f => `
+        <div class="tile">
+          <a href="/gallery#${f.category}:${f.slug}" title="${(f.title||'').replace(/"/g,'&quot;')}">
+            <img src="${f.src}" alt="${(f.alt||'').replace(/"/g,'&quot;')}" loading="lazy" decoding="async"/>
           </a>
         </div>
       `).join('');

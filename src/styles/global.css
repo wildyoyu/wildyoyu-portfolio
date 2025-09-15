@@ -175,3 +175,8 @@ a:hover{ text-decoration: underline; }
 
 /* Hints de performance */
 .hero-visual, .parallax-card{ will-change: transform; }
+/* Oculta controles antiguos del visor anterior (si quedaron en el DOM) */
+.ylb__btn--fit,
+.ylb__btn--open {
+  display: none !important;
+}
