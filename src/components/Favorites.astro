@@ -10,6 +10,7 @@ const index = all.map(e => ({
   category: (e.data.category || '').toLowerCase(),
   w: e.data.w, h: e.data.h
 }));
+const DEBUG = false; // cambia a true temporalmente si quieres ver diagnóstico en consola
 ---
 <section class="section" id="favs">
   <div class="container">
@@ -51,77 +52,92 @@ const index = all.map(e => ({
   </style>
 
   <script is:inline>
+    // ===== Carga índice =====
     const idxEl = document.getElementById('shots-index');
+    /** @type {{slug:string,title?:string,alt?:string,src:string,category?:string}[]} */
     let shots = [];
     try { shots = JSON.parse(idxEl?.textContent || '[]'); } catch { shots = []; }
-
     const bySlug = new Map(shots.map(s => [s.slug, s]));
 
-    const grid = document.getElementById('favs-grid');
-    const top3 = document.getElementById('favs-top');
+    const grid    = document.getElementById('favs-grid');
+    const top3    = document.getElementById('favs-top');
     const counter = document.getElementById('favs-count');
 
     const LS_KEY  = 'yoyu_favs';
     const LS_META = 'yoyu_favs_meta';
 
-    const getFavsRaw = () => { try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch{ return []; } };
+    const getRawFavs = () => { try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch{ return []; } };
     const getMeta    = () => { try{ return JSON.parse(localStorage.getItem(LS_META)||'{}'); }catch{ return {}; } };
 
-    function normalizeFavKeys(){
-      // Une claves de la lista y del meta, y filtra vacíos/duplicados
-      const meta = getMeta();
-      const arr = [...getFavsRaw(), ...Object.keys(meta||{})].filter(Boolean);
-      return Array.from(new Set(arr));
+    // Normaliza claves antiguas: admite "cat:slug", rutas con "/", etc.
+    function normalizeKeys(){
+      const favArr = getRawFavs();
+      const meta   = getMeta();
+      const merged = [...favArr, ...Object.keys(meta||{})].filter(Boolean);
+      const uniq   = Array.from(new Set(merged));
+
+      return uniq.map(k => {
+        // casos: "wildlife:ojo-compuesto", "/gallery#wildlife:ojo-compuesto", "shots/ojo-compuesto"
+        if (k.includes('#')) k = k.split('#').pop();
+        if (k.includes(':')) k = k.split(':').pop();
+        if (k.includes('/')) k = k.split('/').pop();
+        return k;
+      });
     }
 
-    function mapKeysToShots(keys){
-      const out = [];
+    function mapToShots(keys){
+      const hits = [];
+      const misses = [];
       for (const k of keys){
-        let s = bySlug.get(k);
-        // Fallback muy defensivo: si por lo que sea la clave es "parecida" a un slug (con barra), intenta la parte final
-        if (!s && k.includes('/')) s = bySlug.get(k.split('/').pop());
-        if (s) out.push(s);
+        const s = bySlug.get(k);
+        if (s) hits.push(s); else misses.push(k);
       }
-      return out;
+      if (DEBUG && misses.length){
+        console.info('[Favs] Slugs sin match (probable renombre):', misses);
+        console.info('[Favs] Slugs disponibles:', [...bySlug.keys()]);
+      }
+      return hits;
     }
 
-    function renderFavs(){
-      const keys = normalizeFavKeys();
-      const favs = mapKeysToShots(keys);
+    function render(){
+      const keys = normalizeKeys();
       const meta = getMeta();
-
-      // Ordena por likedAt si existe; si no, lo deja al final
-      const ordered = favs
-        .map(s => ({ ...s, likedAt: meta[s.slug]?.likedAt || 0 }))
+      const favs = mapToShots(keys)
+        .map(s => ({...s, likedAt: meta[s.slug]?.likedAt || 0}))
         .sort((a,b) => b.likedAt - a.likedAt);
 
-      const top = ordered.slice(0,3);
-
-      counter.textContent = ordered.length
-        ? `Tus favoritos (${ordered.length})`
+      counter.textContent = favs.length
+        ? `Tus favoritos (${favs.length})`
         : 'Aún no hay favoritos. Dale ❤️ a tus fotos.';
 
-      // Top 3
+      const top = favs.slice(0,3);
       top3.innerHTML = top.map((f, i) => `
         <div class="tile">
-          <a href="/gallery#${f.category}:${f.slug}" title="${(f.title||'').replace(/"/g,'&quot;')}">
+          <a href="/gallery#${f.category||'wildlife'}:${f.slug}" title="${(f.title||'').replace(/"/g,'&quot;')}">
             <img src="${f.src}" alt="${(f.alt||'').replace(/"/g,'&quot;')}" loading="lazy" decoding="async"/>
           </a>
           <span class="badge">TOP ${i+1}</span>
         </div>
       `).join('');
 
-      // Todos
-      grid.innerHTML = ordered.map(f => `
+      grid.innerHTML = favs.map(f => `
         <div class="tile">
-          <a href="/gallery#${f.category}:${f.slug}" title="${(f.title||'').replace(/"/g,'&quot;')}">
+          <a href="/gallery#${f.category||'wildlife'}:${f.slug}" title="${(f.title||'').replace(/"/g,'&quot;')}">
             <img src="${f.src}" alt="${(f.alt||'').replace(/"/g,'&quot;')}" loading="lazy" decoding="async"/>
           </a>
         </div>
       `).join('');
     }
 
-    renderFavs();
-    window.addEventListener('yoyu:favs-changed', renderFavs);
+    render();
+    // Se actualiza si likeas en otra pestaña o si el visor emite el evento custom
+    window.addEventListener('storage', (e) => { if (e.key===LS_KEY || e.key===LS_META) render(); });
+    window.addEventListener('yoyu:favs-changed', render);
+
+    if (DEBUG){
+      console.info('[Favs] index size:', shots.length);
+      console.info('[Favs] raw favs:', getRawFavs());
+      console.info('[Favs] meta:', getMeta());
+    }
   </script>
 </section>

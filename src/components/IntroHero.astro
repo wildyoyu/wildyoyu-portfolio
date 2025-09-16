@@ -1,42 +1,31 @@
 ---
 const name  = "wildyoyu";
 const about = "Apasionado por la naturaleza y en general por el mundo en el que vivimos: wildlife, macro y espacio exterior. Busco el detalle y la historia en cada escena.";
-// Sube tu foto a /public/me.png o cambia la ruta:
 const photo = "/me.png";
 ---
-<section class="section" aria-label="Introducción">
+<section class="section">
   <div class="container intro">
     <figure class="intro-avatar">
-      <div class="avatar">
-        <img
-          src={photo}
-          alt={`Retrato de ${name}`}
-          width="800" height="1000"
-          loading="eager" decoding="async"
-        />
+      <div class="avatar surface">
+        <img src={photo} alt={`Retrato de ${name}`} width="800" height="1000" loading="eager" decoding="async" />
       </div>
       <figcaption class="sr">Retrato de {name}</figcaption>
     </figure>
 
     <div class="intro-copy">
-      <h1 class="h1" style="margin:0 0 .4rem 0;">{name}</h1>
+      <h1 class="h1" style="margin:0 0 .35rem 0;">{name}</h1>
       <p class="lead" style="margin:0 0 1rem 0;">{about}</p>
 
-      <div class="intro-box">
-        <p class="lead" style="margin:0;">
-          En este espacio comparto mis momentos. Si quieres ver o saber más acerca de mí, ¡échale un vistazo!
-        </p>
+      <div class="intro-box surface">
+        <p class="lead" style="margin:0;">En este espacio comparto mis momentos. Si quieres ver o saber más acerca de mí, ¡échale un vistazo!</p>
 
         <div class="btn-row" style="margin-top:.8rem;">
-          <!-- CTA principal -->
           <a href="/gallery" class="btn btn-primary">
             Ver toda la galería
             <svg class="i" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M5 12h12M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </a>
-
-          <!-- Redes sociales -->
           <a href="https://instagram.com/wildyoyu" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" aria-label="Instagram">
             <svg class="i" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.6"/>
@@ -45,7 +34,6 @@ const photo = "/me.png";
             </svg>
             Instagram
           </a>
-
           <a href="https://www.tiktok.com/@wildyoyu_" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm" aria-label="TikTok">
             <svg class="i" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M14.5 3c.5 2.3 1.9 3.9 4.3 4.3v3.1c-1.7-.1-3.2-.7-4.3-1.6v5.7a6.6 6.6 0 11-6.6-6.6c.6 0 1.2.1 1.8.3v3.2a3.5 3.5 0 00-1.8-.5 3.4 3.4 0 103.4 3.4V3h3.2Z" fill="currentColor"/>
@@ -66,37 +54,30 @@ const photo = "/me.png";
     }
     @media (max-width: 900px){ .intro{ grid-template-columns: 1fr; } }
 
-    /* —— Avatar circular (30% más pequeño) —— */
     .intro-avatar{ justify-self:center; margin:0; }
     .avatar{
-      width: min(252px, 24vw);   /* antes ~360px → 30% menos */
-      aspect-ratio: 1 / 1;       /* círculo perfecto */
+      width: min(240px, 24vw);
+      aspect-ratio: 1 / 1;
       border-radius: 9999px;
       overflow: hidden;
-      /* Borde fino que combina con el tema */
-      box-shadow: 0 0 0 2px rgba(255,255,255,.15);
-      background: rgba(255,255,255,.03);
     }
-    .avatar img{
-      width: 100%; height: 100%;
-      object-fit: cover; object-position: center;
-      display:block;
-    }
+    .avatar img{ width:100%; height:100%; object-fit:cover; object-position:center; display:block; }
 
     .intro-box{
-      margin-top:.6rem; padding: clamp(12px,1.5vw,16px);
+      margin-top:.6rem; padding: clamp(14px,1.6vw,18px);
       border-radius: var(--radius);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      outline: 1px solid rgba(255,255,255,.08);
     }
 
     .btn-row{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
     @media (max-width: 600px){ .btn-row{ justify-content:flex-start; } }
 
-    /* Texto solo para lectores de pantalla (si no lo tienes global) */
-    .sr{
-      position:absolute; width:1px; height:1px; padding:0; margin:-1px;
-      overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+    .intro-copy .h1{ margin-bottom:.35rem; }
+    .intro-copy::after{
+      content:""; display:block; width: 64px; height:1px; margin:.35rem 0 1rem 0;
+      background: var(--stroke);
+      border-radius: 2px;
     }
+
+    .sr{ position:absolute; left:-9999px; }
   </style>
 </section>

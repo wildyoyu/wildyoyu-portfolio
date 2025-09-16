@@ -1,95 +1,14 @@
 ---
-/** Ruta actual y helper para marcar activo */
-const url = Astro.url;
-const pathname = url?.pathname ?? '/';
-const isActive = (href: string) =>
-  pathname === href || pathname.startsWith(href + '/');
+const pathname = Astro.url?.pathname ?? '/';
+const isActive = (href: string) => (pathname === href || pathname.startsWith(href + '/'));
 ---
-<header class="site-nav" style="--h:60px">
+<header class="site-nav">
   <div class="container nav-row">
-    <a href="/" class="brand" rel="home" aria-label="Inicio">wildyoyu</a>
-
-    <button class="menu-toggle" aria-expanded="false" aria-controls="primary-nav" aria-label="Abrir menú">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    </button>
-
-    <nav id="primary-nav" class="links" aria-label="Principal">
+    <a href="/" class="brand">wildyoyu</a>
+    <nav class="links" aria-label="Principal">
       <a href="/" aria-current={pathname === '/' ? 'page' : undefined}>Inicio</a>
       <a href="/gallery" aria-current={isActive('/gallery') ? 'page' : undefined}>Galería</a>
       <a href="/contact" aria-current={isActive('/contact') ? 'page' : undefined}>Contacto</a>
     </nav>
   </div>
-
-  <style>
-    .site-nav{
-      position: sticky; top: 0; z-index: 50;
-      backdrop-filter: blur(8px);
-      background: color-mix(in oklab, var(--bg) 82%, transparent);
-      border-bottom: 1px solid rgba(255,255,255,.06);
-    }
-    .nav-row{
-      display:flex; align-items:center; justify-content:space-between;
-      height: var(--h, 60px);
-    }
-
-    .brand{
-      font-weight: 900; letter-spacing:.3px; text-transform: lowercase;
-      font-family:"Newsreader Variable", InterVariable, serif;
-    }
-
-    .menu-toggle{
-      display:none; /* se muestra en móvil */
-      width:40px; height:40px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.05);
-      display:none; align-items:center; justify-content:center;
-      cursor:pointer;
-    }
-    .menu-toggle svg{ width:22px; height:22px; display:block; }
-
-    .links{ display:flex; gap: clamp(12px,2vw,20px); align-items:center; }
-    .links a{
-      opacity:.85; font-weight:700; padding:.35rem .6rem; border-radius:999px;
-      border:1px solid transparent;
-      text-decoration:none; transition: background .15s, border-color .15s, opacity .15s;
-    }
-    .links a:hover{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.12); opacity:1; }
-    .links a[aria-current="page"]{
-      opacity:1;
-      text-decoration: underline; text-underline-offset: 6px;
-    }
-
-    /* —— Responsive —— */
-    @media (max-width: 720px){
-      .menu-toggle{ display:inline-flex; }
-      .links{
-        position: absolute; inset: calc(var(--h,60px)) 0 auto 0;
-        display: grid; gap:8px; padding:12px 16px;
-        background: color-mix(in oklab, var(--bg) 92%, transparent);
-        border-bottom:1px solid rgba(255,255,255,.08);
-        transform: translateY(-6px); opacity:0; pointer-events:none;
-        transition: opacity .15s ease, transform .15s ease;
-      }
-      .site-nav.is-open .links{
-        transform: translateY(0); opacity:1; pointer-events:auto;
-      }
-    }
-  </style>
-
-  <script is:inline>
-    // Toggle del menú en móvil
-    const header = document.currentScript.closest('.site-nav');
-    const btn = header.querySelector('.menu-toggle');
-    const nav = header.querySelector('#primary-nav');
-    btn?.addEventListener('click', () => {
-      const open = header.classList.toggle('is-open');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
-    // Cerrar al navegar
-    nav?.addEventListener('click', (e) => {
-      const a = e.target.closest('a'); if(!a) return;
-      header.classList.remove('is-open');
-      btn?.setAttribute('aria-expanded','false');
-    });
-  </script>
 </header>
