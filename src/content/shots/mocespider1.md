@@ -1,7 +1,6 @@
 ---
 title: "Spiderman origins"
 src: "/photos/mocespider1.webp"
-srcs: ["/photos/mocespider2.webp"]
 alt: "Araña de campo encontrada en poza."
 w: 2560
 h: 1440
