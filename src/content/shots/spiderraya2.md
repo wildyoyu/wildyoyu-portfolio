@@ -1,6 +1,6 @@
 ---
 title: "La mirada del mundo macro"
-src: "/photos/spiderraya2.webp"     
+src: "/photos/spiderraya4.webp"     
 alt: "Menemerus Semilimbatus"
 w: 1920                        
 h: 1200                         
