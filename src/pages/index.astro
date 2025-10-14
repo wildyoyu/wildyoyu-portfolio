@@ -1,11 +1,11 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import IntroHero from '../components/IntroHero.astro';
-import Calendar from '../components/calendar.astro';
 import SectionLanding from '../components/SectionLanding.astro';
+import CalendarMini from '../components/CalendarMini.astro';
 ---
 <BaseLayout title="Wildyoyu — Portfolio" description="Wildlife, macro & night">
   <IntroHero />
-  <Calendar />
-  <SectionLanding />
+  <SectionLanding />   <!-- ahora antes del calendario -->
+  <CalendarMini />     <!-- mini con alto contraste + link a /calendar -->
 </BaseLayout>

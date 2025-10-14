@@ -8,6 +8,7 @@ export type AstroEvent = {
   date: `${number}-${number}-${number}`; // YYYY-MM-DD
   title: string;
   type?: EventType; // 'luna'|'lluvia'|'planeta'|'eclipse'|'otro'
+  super?: boolean;  // marcar superluna explícitamente (opcional)
 };
 
 // ----------------------------------------------
@@ -37,7 +38,10 @@ export const astroEvents: AstroEvent[] = [
   // ——— Estaciones ———
   { date: '2025-09-22', title: 'Equinoccio de septiembre', type: 'otro' },
 
-  // ——— Lunas llenas de 2025 (con superlunas) ———
+  // ——— Evento propio ———
+  { date: '2025-12-12', title: 'Evento de Wildyoyu (salida nocturna + taller)', type: 'otro' },
+
+  // ——— Lunas llenas 2025 (con superlunas indicadas) ———
   { date: '2025-01-13', title: 'Luna llena (Lobo)', type: 'luna' },
   { date: '2025-02-12', title: 'Luna llena (Nieve)', type: 'luna' },
   { date: '2025-03-14', title: 'Luna llena (Gusano)', type: 'luna' },
@@ -47,12 +51,42 @@ export const astroEvents: AstroEvent[] = [
   { date: '2025-07-10', title: 'Luna llena (Ciervo)', type: 'luna' },
   { date: '2025-08-09', title: 'Luna llena (Esturión)', type: 'luna' },
   { date: '2025-09-07', title: 'Luna llena (Cosecha)', type: 'luna' },
-  { date: '2025-10-07', title: 'Superluna (Cazador)', type: 'luna' },
-  { date: '2025-11-05', title: 'Superluna (Castor)', type: 'luna' },
-  { date: '2025-12-04', title: 'Superluna (Fría)', type: 'luna' },
+  { date: '2025-10-07', title: 'Superluna (Cazador)', type: 'luna', super: true },
+  { date: '2025-11-05', title: 'Superluna (Castor)',   type: 'luna', super: true },
+  { date: '2025-12-04', title: 'Superluna (Fría)',     type: 'luna', super: true },
+
+  // ============================================================
+  // 2026 — hasta OCTUBRE (lunas llenas + algunos hitos)
+  // Fuentes de referencia de fases lunares 2026 (ver notas al final)
+  // ============================================================
+
+  // ——— Lunas llenas 2026 (enero → octubre) ———
+  { date: '2026-01-03', title: 'Luna llena (Lobo)', type: 'luna' },
+  { date: '2026-02-01', title: 'Luna llena (Nieve)', type: 'luna' },
+  { date: '2026-03-03', title: 'Luna llena (Gusano)', type: 'luna' },
+  { date: '2026-04-01', title: 'Luna llena (Rosa)', type: 'luna' },
+  { date: '2026-05-01', title: 'Luna llena (Flores)', type: 'luna' },
+  { date: '2026-05-31', title: 'Luna llena (Luna Azul calendárica)', type: 'luna' },
+  { date: '2026-06-29', title: 'Luna llena (Fresa)', type: 'luna' },
+  { date: '2026-07-29', title: 'Luna llena (Ciervo)', type: 'luna' },
+  { date: '2026-08-28', title: 'Luna llena (Esturión)', type: 'luna' },
+  { date: '2026-09-26', title: 'Luna llena (Cosecha)', type: 'luna' },
+  { date: '2026-10-26', title: 'Luna llena (Cazador)', type: 'luna' },
+
+  // ——— Lluvias 2026 (picos aproximados habituales) ———
+  { date: '2026-01-03', title: 'Cuadrántidas (máximo)', type: 'lluvia' },
+  { date: '2026-04-22', title: 'Líridas (máximo)', type: 'lluvia' },
+  { date: '2026-05-06', title: 'Eta Acuáridas (máximo, antes del alba)', type: 'lluvia' },
+  { date: '2026-07-29', title: 'Delta Acuáridas Sur (máximo)', type: 'lluvia' },
+  { date: '2026-08-12', title: 'Perseidas (máximo)', type: 'lluvia' },
+  { date: '2026-10-08', title: 'Dracónidas (máximo, al anochecer)', type: 'lluvia' },
+  { date: '2026-10-22', title: 'Oriónidas (máximo, madrugada)', type: 'lluvia' },
+
+  // ——— Estaciones 2026 ———
+  { date: '2026-09-22', title: 'Equinoccio de septiembre', type: 'otro' },
 ].sort((a, b) => a.date.localeCompare(b.date));
 
-// Helper opcional: eventos de un mes concreto
+// Helper: eventos de un mes concreto
 export function getEventsInMonth(year: number, month: number): AstroEvent[] {
   const mm = String(month).padStart(2, '0');
   return astroEvents.filter(e => e.date.startsWith(`${year}-${mm}-`));

@@ -1,0 +1,90 @@
+---
+import { astroEvents } from '../data/events';
+
+const today = new Date(new Date().toDateString());
+const next = astroEvents
+  .filter(ev => new Date(ev.date) >= today)
+  .sort((a,b)=> new Date(a.date) - new Date(b.date))
+  .slice(0, 4);
+---
+
+<section class="section" id="calendar-mini">
+  <div class="container">
+    <a class="mini-card" href="/calendar" aria-label="Abrir calendario completo">
+      <header class="mini-head">
+        <h2 class="mini-title">Calendario astronómico</h2>
+        <span class="mini-cta">Ver completo ↗</span>
+      </header>
+
+      <ul class="mini-list">
+        {next.length === 0 ? (
+          <li class="mini-empty">No hay eventos próximos.</li>
+        ) : next.map(ev => (
+          <li class="mini-item">
+            <span class="date">
+              {new Date(ev.date).toLocaleDateString('es-ES', { day:'2-digit', month:'short' })}
+            </span>
+            <span class="title">{ev.title}</span>
+          </li>
+        ))}
+      </ul>
+    </a>
+  </div>
+</section>
+
+<style>
+  /* Tarjeta compacta con ALTO contraste sobre el fondo */
+  .mini-card{
+    display:block;
+    padding:16px 18px;
+    border-radius: var(--radius);
+    text-decoration: none;
+    border: 1px solid color-mix(in oklab, var(--accent) 55%, var(--stroke));
+    background:
+      linear-gradient(180deg, color-mix(in oklab, var(--bg1) 40%, var(--accent) 22%), color-mix(in oklab, var(--bg1) 64%, black 10%));
+    box-shadow: 0 22px 60px rgba(0,0,0,.38);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .mini-card:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 28px 88px rgba(0,0,0,.45);
+    border-color: color-mix(in oklab, var(--accent) 75%, var(--stroke));
+  }
+
+  .mini-head{
+    display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;
+  }
+  .mini-title{
+    margin:0;
+    font: inherit;
+    font-family:"Newsreader Variable", InterVariable, serif;
+    font-variation-settings:"opsz" 22;
+    font-weight: 900;
+    letter-spacing:.2px;
+    font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+  }
+  .mini-cta{
+    font-weight:800;
+    padding:.35rem .7rem;
+    border-radius: 999px;
+    border:1px solid color-mix(in oklab, var(--accent) 55%, var(--stroke));
+    background: color-mix(in oklab, var(--fg) 80%, transparent);
+    color: color-mix(in oklab, var(--bg0) 92%, black 0%);
+  }
+
+  .mini-list{
+    list-style:none; margin:0; padding:0; display:grid; gap:8px;
+  }
+  .mini-item{
+    display:flex; gap:10px; align-items:center;
+    font-size:.98rem;
+  }
+  .mini-empty{ opacity:.85; font-style: italic; }
+  .date{
+    font-weight:900; color: var(--accent); min-width: 64px;
+  }
+  .title{
+    color: color-mix(in oklab, var(--fg) 94%, white 8%);
+    text-wrap: balance;
+  }
+</style>

@@ -4,6 +4,8 @@ import { astroEvents } from '../data/events';
 const now = new Date();
 const year = now.getFullYear();
 const month = now.getMonth() + 1;
+
+// Ventana: el script ya la limita si lo tenías; aquí solo arrancamos en el mes actual.
 ---
 <section class="section" id="calendar">
   <div class="container">
@@ -23,10 +25,8 @@ const month = now.getMonth() + 1;
       <div class="cal__grid">
         <div class="cal__dow">L</div><div class="cal__dow">M</div><div class="cal__dow">X</div>
         <div class="cal__dow">J</div><div class="cal__dow">V</div><div class="cal__dow">S</div><div class="cal__dow">D</div>
-        <!-- celdas por JS -->
       </div>
 
-      <!-- Leyenda con Luna llena y Superluna diferenciadas -->
       <div class="cal__legend" style="margin-top:6px">
         <span class="pill"><span class="emo">🌕</span> Luna llena</span>
         <span class="pill"><span class="emo">🌕✨</span> Superluna</span>
@@ -44,21 +44,18 @@ const month = now.getMonth() + 1;
   </div>
 
   <style>
-    /* anchura contenida */
     .cal{
       max-width: min(92vw, 920px);
       margin-inline: auto;
       display:grid; gap:12px;
     }
-
     .cal__hdr{display:flex; align-items:center; justify-content:space-between}
     .cal__title{text-transform:capitalize; font-weight:900}
 
-    /* Retícula por gradiente (anti-alias robusto) */
     .cal__grid{
       --row-h: 66px;
       --line: rgba(255,255,255,.28);
-      --rows: 7; /* la actualiza JS */
+      --rows: 7;
       display:grid;
       grid-template-columns: repeat(7, 1fr);
       grid-auto-rows: var(--row-h);
@@ -78,22 +75,22 @@ const month = now.getMonth() + 1;
       display:grid; place-items:center;
       font-weight:800; background:transparent;
     }
-
     .cal__cell{
       position:relative;
-      display:grid; place-items:center; /* centra el emoji */
+      display:grid; place-items:center;
       background:transparent;
+      transition: box-shadow .2s ease, outline-color .2s ease;
     }
     .cal__cell.is-empty{ background:linear-gradient(180deg, rgba(255,255,255,.03), transparent) }
 
-    /* Número del día: verticalmente centrado a la izquierda */
+    /* Día (número) */
     .cal__num{
       position:absolute; left:8px; top:50%;
       transform: translateY(-50%);
       font-weight:900; opacity:.95; pointer-events:none;
     }
 
-    /* Badge del emoji centrado */
+    /* Badge central */
     .cal__e{
       display:inline-grid; place-items:center;
       min-width:26px; height:26px; padding:0 4px;
@@ -101,7 +98,14 @@ const month = now.getMonth() + 1;
       background: rgba(255,255,255,.06);
       border:1px solid rgba(255,255,255,.22);
       font-size:15px; line-height:1;
-      white-space:nowrap; /* para "🌕✨" que son dos símbolos */
+      white-space:nowrap;
+    }
+
+    /* HIGHLIGHT de superluna */
+    .cal__cell.is-super{
+      outline:2px solid color-mix(in oklab, var(--accent) 70%, white 6%);
+      box-shadow: 0 0 0 6px color-mix(in oklab, var(--accent) 20%, transparent) inset;
+      background: linear-gradient(180deg, rgba(255,255,255,.05), transparent);
     }
 
     /* Leyenda */
@@ -115,6 +119,14 @@ const month = now.getMonth() + 1;
     .emo{ font-size:14px; line-height:1 }
 
     .cal__list ul{margin:0; padding-left:18px}
+    .cta-wa{
+      margin-top:10px;
+      display:inline-flex; align-items:center; gap:8px;
+      padding:.55rem .8rem; border-radius:999px;
+      background:#25D366; color:#101;
+      font-weight:900; border:0;
+      text-decoration:none;
+    }
   </style>
 
   <script is:inline>
@@ -126,24 +138,26 @@ const month = now.getMonth() + 1;
 
     // Emoji por tipo y caso especial superluna
     const TYPE_EMOJI = { luna:'🌕', lluvia:'☄️', planeta:'🪐', eclipse:'🌒', otro:'✦' };
+    function isSuperMoon(ev){
+      return (ev.type === 'luna') && (ev.super || /superluna/i.test(ev.title));
+    }
     function emojiFor(ev){
-      if ((ev.type||'') === 'luna') return ev.super || /superluna/i.test(ev.title) ? '🌕✨' : '🌕';
+      if (isSuperMoon(ev)) return '🌕✨';
+      if (ev.type === 'luna') return '🌕';
       return TYPE_EMOJI[ev.type||'otro'] || '✦';
     }
 
-    // Prioridad para elegir icono si hay varios eventos el mismo día
     const PRIORITY = ['luna-super', 'luna', 'eclipse', 'lluvia', 'planeta', 'otro'];
     function pickEmoji(list){
       if (!list.length) return null;
-      // etiqueta interna para ordenar
-      const tag = (ev) => (ev.type==='luna' && (ev.super || /superluna/i.test(ev.title))) ? 'luna-super' : (ev.type || 'otro');
+      const tag = (ev) => isSuperMoon(ev) ? 'luna-super' : (ev.type || 'otro');
       const chosen = list.slice().sort((a,b)=> PRIORITY.indexOf(tag(a)) - PRIORITY.indexOf(tag(b)) )[0];
-      return { char: emojiFor(chosen), title: list.map(e=>e.title).join(' • ') };
+      return { char: emojiFor(chosen), title: list.map(e => e.title).join(' • '), hasSuper: list.some(isSuperMoon) };
     }
 
     const monthMatrix = (y,m) => {
       const first = new Date(y, m-1, 1);
-      const start = (first.getDay() + 6) % 7; // lunes=0
+      const start = (first.getDay() + 6) % 7; // Lunes=0
       const days  = new Date(y, m, 0).getDate();
       const cells = [];
       for(let i=0;i<start;i++) cells.push({d:null});
@@ -158,16 +172,14 @@ const month = now.getMonth() + 1;
     function renderCalendar(y,m){
       ROOT.dataset.year=y; ROOT.dataset.month=m;
       TITLE.textContent = new Date(y, m-1, 1).toLocaleString('es-ES',{month:'long', year:'numeric'});
-
-      // limpia celdas (dejamos los 7 .cal__dow)
       GRID.querySelectorAll('.cal__cell').forEach(n=>n.remove());
 
-      const cells = monthMatrix(y,m);
-      const rows = 1 + Math.ceil(cells.length / 7);  // +1 cabecera
-      GRID.style.setProperty('--rows', rows);
-
       const byDay = new Map();
-      EVS.forEach(ev => { const key = ev.date; const arr = byDay.get(key)||[]; arr.push(ev); byDay.set(key, arr); });
+      EVS.forEach(ev => { const arr = byDay.get(ev.date)||[]; arr.push(ev); byDay.set(ev.date, arr); });
+
+      const cells = monthMatrix(y,m);
+      const rows  = 1 + Math.ceil(cells.length / 7);
+      GRID.style.setProperty('--rows', rows);
 
       const frag = document.createDocumentFragment();
       for (const cell of cells){
@@ -183,8 +195,9 @@ const month = now.getMonth() + 1;
           if (em){
             const e=document.createElement('span');
             e.className='cal__e';
-            e.textContent = em.char;      // "🌕" o "🌕✨"
-            e.title = em.title;           // tooltip con todos los eventos del día
+            e.textContent = em.char;
+            e.title = em.title;
+            if (em.hasSuper) div.classList.add('is-super'); // ⭐ realce de superluna
             div.appendChild(e);
           }
         }
@@ -192,13 +205,21 @@ const month = now.getMonth() + 1;
       }
       GRID.appendChild(frag);
 
+      // Lista de próximos (desde hoy)
       const today = new Date(new Date().toDateString());
-      UPC.innerHTML = EVS
+      const items = EVS
         .filter(ev => new Date(ev.date) >= today)
         .sort((a,b)=> new Date(a.date) - new Date(b.date))
-        .slice(0,8)
-        .map(ev => `<li><strong>${new Date(ev.date).toLocaleDateString('es-ES',{day:'2-digit',month:'short'})}</strong> — ${ev.title}</li>`)
-        .join('');
+        .slice(0,10);
+
+      UPC.innerHTML = items.map(ev => {
+        const dateStr = new Date(ev.date).toLocaleDateString('es-ES',{day:'2-digit',month:'short'});
+        const isWildy = ev.date === '2025-12-12';
+        const emoji = emojiFor(ev);
+        const line = `<li><strong>${dateStr}</strong> — ${emoji} ${ev.title}${isWildy ? ' ' +
+          `<a class="cta-wa" href="https://wa.me/34638865189?text=${encodeURIComponent('Hola, me apunto al Evento de Wildyoyu del 12 de diciembre.')}" target="_blank" rel="noopener noreferrer">Apuntarme</a>` : ''}</li>`;
+        return line;
+      }).join('');
     }
 
     ROOT.querySelectorAll('.cal__btn').forEach(btn => {

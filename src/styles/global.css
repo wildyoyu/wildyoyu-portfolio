@@ -6,12 +6,13 @@
    Tema PRO: tokens & base
    ========================= */
 :root{
-  --bg0: #08110d;
-  --bg1: #0b1812;
-  --fg:  #f1f4f2;
-  --muted:#a8b3ac;
-  --stroke: color-mix(in oklab, var(--fg) 18%, transparent);
-  --accent:#8ecae6;
+  /* Paleta cinematográfica (noche fría) */
+  --bg0: #060a0d;      /* fondo base profundo */
+  --bg1: #0d1b1e;      /* superficies (vidrio) */
+  --fg:  #e8ecee;      /* texto principal */
+  --muted:#9bb0b7;     /* texto secundario */
+  --accent:#88c9f5;    /* acento (azul suave) */
+  --stroke: color-mix(in oklab, var(--accent) 28%, transparent);
 
   --maxw: 1160px;
   --radius: 22px;
@@ -27,6 +28,7 @@
 html,body{ margin:0; padding:0; height:100%; }
 img,picture,video,canvas{ display:block; max-width:100%; }
 
+/* Base */
 html{
   color-scheme: dark;
   background: var(--bg0);
@@ -37,17 +39,17 @@ html{
 }
 body{ min-height:100dvh; overscroll-behavior-y: contain; }
 
-/* Wallpaper fijo */
+/* Wallpaper fijo a pantalla completa (profundidad con halos) */
 body::before{
   content:"";
   position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background:
-    radial-gradient(1200px 800px at 15% -10%, #0f231a 0%, transparent 65%),
-    radial-gradient(1000px 700px at 110% 20%, #0a1c15 0%, transparent 60%),
-    linear-gradient(180deg, #08110d 0%, #0b1812 65%);
+    radial-gradient(1200px 800px at 80% -20%, rgba(32,70,92,.25), transparent 70%),
+    radial-gradient(800px 600px at 10% 90%, rgba(105,180,155,.22), transparent 70%),
+    linear-gradient(180deg, var(--bg0) 0%, var(--bg1) 90%);
 }
 
-/* Accesibilidad */
+/* Accesibilidad de movimiento reducido */
 @media (prefers-reduced-motion: reduce){
   *{ animation:none !important; transition:none !important; }
 }
@@ -61,7 +63,12 @@ body::before{
   font-size: clamp(2.4rem, 5.6vw, 4.2rem);
   line-height: 1.08;
 }
-.h2{ font-weight:900; letter-spacing:.2px; font-size: clamp(1.25rem, 2.6vw, 1.6rem); }
+.h2{
+  font-family:"Newsreader Variable", InterVariable, serif;
+  font-variation-settings:"opsz" 22;
+  font-weight:900; letter-spacing:.2px;
+  font-size: clamp(1.25rem, 2.6vw, 1.6rem);
+}
 .lead{ font-size: clamp(1rem, 2.1vw, 1.1rem); opacity:.92; }
 
 a{ color: inherit; text-decoration: none; }
@@ -69,7 +76,11 @@ a:hover{ text-decoration: underline; text-underline-offset: 6px; }
 
 /* Layout */
 .container{ width:min(100% - 2rem, var(--maxw)); margin-inline:auto; }
-.section{ padding-block: clamp(60px, 9vw, 120px); background: transparent !important; position: relative; }
+.section{
+  padding-block: clamp(60px, 9vw, 120px);
+  background: transparent !important;
+  position: relative;
+}
 .center{ display:grid; place-items:center; }
 
 /* Superficie “vidrio tintado” */
@@ -83,17 +94,11 @@ a:hover{ text-decoration: underline; text-underline-offset: 6px; }
 /* Evita hairlines subpíxel */
 *{ -webkit-backface-visibility: hidden; backface-visibility: hidden; }
 
-/* ===== Iconos / SVG visibles en cualquier sitio ===== */
-button svg, .btn svg, a[aria-label] svg, .i { stroke: currentColor; fill: none; display:block; }
-button svg *, .i *{ stroke: currentColor; }
-
-/* Asegura color dentro de <dialog> */
-dialog{ z-index: 1000; color: var(--fg); }
-
 /* Nav */
 .site-nav{
   position: sticky; top: 0; z-index: 50;
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   background: color-mix(in oklab, var(--bg0) 86%, transparent);
   border-bottom: 1px solid var(--stroke);
 }
@@ -125,7 +130,7 @@ dialog{ z-index: 1000; color: var(--fg); }
 .btn-xl{ padding: 1rem 1.3rem; font-size: clamp(1rem, 2.2vw, 1.1rem); }
 .btn svg, .btn .i{ width:1.05em; height:1.05em; flex-shrink:0; }
 
-/* Rejilla tipo Instagram — QUITA bordes nativos del botón */
+/* Rejilla tipo Instagram */
 .ig-grid{ display:grid; gap:8px; }
 @media (max-width: 680px){ .ig-grid{ grid-template-columns: repeat(3, 1fr); } }
 @media (min-width: 681px) and (max-width: 1024px){ .ig-grid{ grid-template-columns: repeat(4, 1fr); } }
@@ -134,21 +139,19 @@ dialog{ z-index: 1000; color: var(--fg); }
 .tile{
   position:relative; overflow:hidden; border-radius: 18px;
   background: color-mix(in oklab, var(--bg1) 70%, white 5%);
-  border:0;
+  border:1px solid var(--stroke);
   box-shadow: var(--shadow-md);
   transform: translateZ(0);
 }
 .tile .thumb{ width:100%; aspect-ratio:1/1; overflow:hidden; }
-.tile img{ width:100%; height:100%; object-fit:cover; display:block; transition: transform .35s ease; }
-
-/* ——— RESET crítico ——— */
-.lb-trigger{
-  all: unset;               /* quita borde, fondo, padding nativos de <button> */
-  display:block; width:100%; height:100%;
-  cursor: pointer; color: inherit;
-  border-radius: inherit;
+.tile img{
+  width:100%; height:100%; object-fit:cover; display:block;
+  transition: transform .4s ease, filter .4s ease;
 }
-.lb-trigger:focus-visible{ outline: 2px solid color-mix(in oklab, var(--fg) 28%, transparent); outline-offset: 2px; }
+/* Hover “cinemático” */
+@media (hover:hover){
+  .tile:hover img{ transform: scale(1.06); filter: brightness(1.1) contrast(1.08); }
+}
 
 /* Tabs (Galería) */
 .tabs{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
@@ -164,7 +167,7 @@ dialog{ z-index: 1000; color: var(--fg); }
   border-color: transparent;
 }
 
-/* Hero/parallax */
+/* Hero/parallax opt-in */
 .hero-visual{
   view-timeline-name: --hero; view-timeline-axis: block;
   animation-timeline: --hero; animation-name: hero-zoom;
@@ -181,51 +184,9 @@ dialog{ z-index: 1000; color: var(--fg); }
 .sticky-wrap{ position:relative; height:200svh; }
 .sticky{ position:sticky; top:0; height:100svh; display:grid; place-items:center; }
 
-html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+/* -------- Animación de entrada sutil (scroll reveal) -------- */
+[data-animate]{ opacity:0; transform:translateY(30px); transition: opacity .8s ease, transform .8s ease; }
+[data-animate].is-visible{ opacity:1; transform:none; }
 
-/* Sin outline en previews de SectionLanding */
-.sections .preview img{ outline: none !important; }
-/* ===== GALERÍA: grid más compacto en desktop y micro-zoom suave ===== */
-.ig-grid{ display:grid; gap:10px; }
-@media (max-width: 680px){ .ig-grid{ grid-template-columns: repeat(3, 1fr); } }
-@media (min-width: 681px) and (max-width: 1024px){ .ig-grid{ grid-template-columns: repeat(5, 1fr); } }
-@media (min-width: 1025px){ .ig-grid{ grid-template-columns: repeat(7, 1fr); } }
-
-/* tarjeta más ligera; sin bordes */
-.tile{
-  position:relative; overflow:hidden; border-radius: 16px;
-  background: color-mix(in oklab, var(--bg1) 70%, white 5%);
-  border:0; box-shadow: var(--shadow-md);
-  transform: translateZ(0);
-}
-.tile .thumb{ width:100%; aspect-ratio:1/1; overflow:hidden; }
-.tile img{
-  width:100%; height:100%; object-fit:cover; display:block;
-  will-change: transform, opacity;
-  transition: transform .35s ease, opacity .35s ease;
-}
-
-/* Hover (puntero) */
-@media (hover:hover){
-  .tile:hover img{ transform: scale(1.04); }
-}
-
-/* Scroll-driven micro zoom (cuando entra en viewport) */
-.tile img{
-  view-timeline-name: --tile;
-  view-timeline-axis: block;
-  animation: tile-zoom both;
-  animation-timeline: --tile;
-  animation-range: entry 20% cover 60%;
-}
-@keyframes tile-zoom{
-  from{ transform: scale(.98); opacity:.92; }
-  to  { transform: scale(1.02); opacity:1; }
-}
-
-/* Botón de miniatura: sin borde nativo (evita “borde gris”) */
-.lb-trigger{
-  all: unset; display:block; width:100%; height:100%;
-  cursor: pointer; color: inherit; border-radius: inherit;
-}
-.lb-trigger:focus-visible{ outline: 2px solid color-mix(in oklab, var(--fg) 28%, transparent); outline-offset: 2px; }
+/* Utilidad de ocultación accesible (por si la necesitas global) */
+.sr{ position:absolute !important; width:1px !important; height:1px !important; padding:0 !important; margin:-1px !important; overflow:hidden !important; clip:rect(0,0,0,0) !important; white-space:nowrap !important; border:0 !important; }
