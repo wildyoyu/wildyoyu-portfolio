@@ -26,7 +26,14 @@ const sections = [
         <div class="preview" aria-hidden="true">
           <div class="preview-inner">
             {s.images.map((it) => (
-              <img src={it.src} alt="" loading="lazy" decoding="async" width={it.w} height={it.h} />
+              <img
+                src={it.src}
+                alt=""
+                width={it.w}
+                height={it.h}
+                loading="lazy"
+                decoding="async"
+              />
             ))}
           </div>
         </div>
@@ -68,14 +75,22 @@ const sections = [
   }
 
   .preview{
-    position:absolute; inset:0; z-index: 1;
-    pointer-events: none;
+    position:absolute; inset:0; z-index: 1; pointer-events: none;
     display:grid; place-items:center;
     opacity:.0; transform: scale(.97);
     transition: opacity .35s ease, transform .35s ease, filter .35s ease;
     filter: saturate(1.04) contrast(1.03) brightness(.96);
   }
-  .card:hover .preview{ opacity: 1; transform: scale(1); filter: none; }
+
+  /* 💡 Desktop: aparece al hover */
+  @media (hover:hover){
+    .card:hover .preview{ opacity: 1; transform: scale(1); filter: none; }
+  }
+
+  /* 📱 Móvil (no hay hover): SIEMPRE visible */
+  @media (hover:none), (pointer:coarse){
+    .preview{ opacity:1; transform:none; filter:none; }
+  }
 
   .preview-inner{
     width: min(88%, 740px);
@@ -83,7 +98,7 @@ const sections = [
     gap: clamp(6px,1.4vw,12px);
   }
   .preview img{
-    display:block; width:100%; height:auto; aspect-ratio: 4/3; object-fit: cover;
+    display:block; width:100%; height:auto; aspect-ratio: 4 / 3; object-fit: cover;
     border-radius: calc(var(--radius) - 10px);
     box-shadow: 0 8px 24px rgba(0,0,0,.35);
     outline: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
