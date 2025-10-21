@@ -1,0 +1,94 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+const walls = (await getCollection("walls")).sort(
+  (a, b) => new Date(b.data.date || 0).getTime() - new Date(a.data.date || 0).getTime()
+);
+---
+
+<BaseLayout title="Fondos de pantalla — Wildyoyu" description="Descarga fondos de pantalla de Wildyoyu">
+  <section class="section" id="wallpapers">
+    <div class="container">
+      <h2 class="h2">¡Fondos de pantalla de los yoyus!</h2>
+      <p class="intro">Si eres un yoyu de verdad, tienes que llevar uno de estos fondos. Están guapísimos.</p>
+
+      <div class="masonry" id="masonry">
+        {walls.map(({ data }, i) => (
+          <article class="pin">
+            <figure class="card">
+              <img
+                src={data.src}
+                alt={data.alt || "Fondo de pantalla de Wildyoyu"}
+                width={data.w}
+                height={data.h}
+                loading={i < 4 ? 'eager' : 'lazy'}
+                decoding="async"
+                fetchpriority={i < 6 ? 'high' : 'auto'}
+              />
+              <!-- ÚNICO botón -->
+              <a class="dl" href={data.src} download aria-label="Descargar fondo">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"
+                        fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </a>
+            </figure>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .section{ padding: clamp(2rem,5vw,3.5rem) 0; }
+    .intro{ opacity:.85; text-align:center; max-width:60ch; margin:.5rem auto 1.3rem; }
+
+    /* Masonry tipo Pinterest con CSS columns */
+    .masonry{ column-gap:16px; column-count:1; }
+    @media (min-width:560px){ .masonry{ column-count:2; } }
+    @media (min-width:900px){ .masonry{ column-count:3; } }
+    @media (min-width:1200px){ .masonry{ column-count:4; } }
+
+    .pin{ break-inside:avoid; margin-bottom:16px; }
+
+    .card{
+      position:relative; display:block;
+      border-radius:18px; overflow:hidden;
+      background: color-mix(in oklab, var(--bg1) 70%, white 5%);
+      border:1px solid var(--stroke);
+      box-shadow: var(--shadow-md);
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+    .card:hover{ transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+
+    .card img{
+      display:block; width:100%; height:auto; object-fit:cover;
+    }
+
+    /* Botón redondo único (descargar) */
+    .dl{
+      position:absolute; right:10px; bottom:10px;
+      display:grid; place-items:center;
+      width:38px; height:38px; border-radius:50%;
+      border:1px solid var(--stroke);
+      background: color-mix(in oklab, var(--bg1) 76%, white 6%);
+      color: var(--fg);
+      text-decoration:none;
+      opacity:0; transform: translateY(4px);
+      transition: opacity .2s ease, transform .2s ease, background .2s ease, border-color .2s ease;
+    }
+    .card:hover .dl{ opacity:1; transform: translateY(0); }
+    .dl:hover{ background: var(--fg); color: color-mix(in oklab, var(--bg0) 92%, black); border-color: transparent; }
+    .dl svg{ width:18px; height:18px; display:block; }
+
+    /* Móvil: sin hover, que sea visible siempre */
+    @media (hover:none){
+      .dl{ opacity:1; transform:none; background: var(--fg); color: color-mix(in oklab, var(--bg0) 92%, black); }
+    }
+
+    /* Defensa anti “A” fantasma por anchors vacíos */
+    .card a::before{ content:none !important; }
+  </style>
+</BaseLayout>

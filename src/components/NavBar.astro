@@ -1,14 +1,103 @@
 ---
 const pathname = Astro.url?.pathname ?? '/';
-const isActive = (href: string) => (pathname === href || pathname.startsWith(href + '/'));
+const isActive = (href: string) => pathname.startsWith(href);
 ---
+
 <header class="site-nav">
   <div class="container nav-row">
     <a href="/" class="brand">wildyoyu</a>
+
     <nav class="links" aria-label="Principal">
-      <a href="/" aria-current={pathname === '/' ? 'page' : undefined}>Inicio</a>
-      <a href="/gallery" aria-current={isActive('/gallery') ? 'page' : undefined}>Galería</a>
-      <a href="/contact" aria-current={isActive('/contact') ? 'page' : undefined}>Contacto</a>
+      <details class="dropdown">
+        <summary class="drop-btn">Explorar</summary>
+        <div class="drop-menu">
+          <a href="/calendar" aria-current={isActive('/calendar') ? 'page' : undefined}>📅 Calendario astronómico</a>
+          <a href="/wallpapers" aria-current={isActive('/wallpapers') ? 'page' : undefined}>🖼️ Fondos de pantalla</a>
+          <a href="/gallery" aria-current={isActive('/gallery') ? 'page' : undefined}>📸 Galería</a>
+        </div>
+      </details>
+
+      <a href="/contact" aria-current={isActive('/contact') ? 'page' : undefined} class="btn-contact">
+        Contacto
+      </a>
     </nav>
   </div>
 </header>
+
+<style>
+  .site-nav{
+    position:sticky; top:0; z-index:50;
+    background: color-mix(in oklab, var(--bg1) 82%, white 4%);
+    border-bottom:1px solid var(--stroke);
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(10px);
+  }
+  .nav-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 0.8rem 0;
+  }
+  .brand{
+    font-weight:900; font-family:"Newsreader Variable", serif;
+    font-variation-settings:"opsz" 22;
+    font-size:1.4rem; color:var(--fg); text-decoration:none;
+  }
+
+  .links{
+    display:flex; align-items:center; gap:18px;
+  }
+
+  /* --- Desplegable --- */
+  .dropdown{ position:relative; }
+  .drop-btn{
+    cursor:pointer; font-weight:800;
+    border:1px solid var(--stroke);
+    border-radius:999px;
+    padding:.45rem .9rem;
+    background: color-mix(in oklab, var(--fg) 78%, transparent);
+    color: color-mix(in oklab, var(--bg0) 90%, black 0%);
+    list-style:none;
+    user-select:none;
+    transition: background .2s ease, color .2s ease;
+  }
+  .drop-btn:hover{ background: var(--fg); color:var(--bg0); }
+
+  .drop-menu{
+    position:absolute; top:110%; left:0;
+    display:flex; flex-direction:column;
+    background: color-mix(in oklab, var(--bg1) 85%, white 5%);
+    border:1px solid var(--stroke);
+    border-radius:12px;
+    padding:.5rem 0;
+    box-shadow: var(--shadow-lg);
+    min-width:210px;
+  }
+  .drop-menu a{
+    text-decoration:none;
+    color:var(--fg);
+    padding:.5rem 1rem;
+    font-weight:600;
+    display:flex; align-items:center; gap:8px;
+    transition: background .15s ease;
+  }
+  .drop-menu a:hover{ background: color-mix(in oklab, var(--fg) 8%, transparent); }
+
+  details[open] > summary::after{ transform: rotate(180deg); }
+  summary::-webkit-details-marker{ display:none; }
+
+  /* --- Botón de contacto --- */
+  .btn-contact{
+    font-weight:700;
+    border:1px solid var(--stroke);
+    border-radius:999px;
+    padding:.45rem 1.1rem;
+    background: color-mix(in oklab, var(--bg1) 80%, white 4%);
+    color:var(--fg);
+    text-decoration:none;
+    transition: background .2s ease, transform .2s ease;
+  }
+  .btn-contact:hover{
+    background: color-mix(in oklab, var(--fg) 70%, transparent);
+    color: color-mix(in oklab, var(--bg0) 92%, black 0%);
+    transform: translateY(-1px);
+  }
+</style>
