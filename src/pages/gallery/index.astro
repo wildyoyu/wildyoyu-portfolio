@@ -43,16 +43,29 @@ const tabs = [
             <p class="lead">Aún no hay fotos en {t.title.toLowerCase()}.</p>
           ) : (
             <div class="ig-grid">
-              {t.items.map((it, idx) => (
-                <article class="tile">
-                  <button class="lb-trigger" type="button"
-                          data-idx={idx} data-slug={it.slug}
-                          data-src={it.src} data-alt={it.alt} data-title={it.title}
-                          data-w={it.w} data-h={it.h}>
-                    <div class="thumb"><img src={it.src} alt={it.alt} loading="lazy" decoding="async" /></div>
-                  </button>
-                </article>
-              ))}
+              {t.items.map((it, idx) => {
+                // Mejora de carga: primeras 3 por panel con más prioridad
+                const eager = idx === 0 ? 'eager' : 'lazy';
+                const prio  = idx < 3 ? 'high' : 'auto';
+                return (
+                  <article class="tile">
+                    <button class="lb-trigger" type="button"
+                            data-idx={idx} data-slug={it.slug}
+                            data-src={it.src} data-alt={it.alt} data-title={it.title}>
+                      <div class="thumb">
+                        <img class="thumb-img"
+                             src={it.src}
+                             alt={it.alt}
+                             width={it.w} height={it.h}
+                             loading={eager}
+                             decoding="async"
+                             fetchpriority={prio}
+                             sizes="(max-width:680px) 33vw, (max-width:1024px) 25vw, 18vw" />
+                      </div>
+                    </button>
+                  </article>
+                );
+              })}
             </div>
           )}
         </div>
@@ -61,7 +74,27 @@ const tabs = [
   </section>
 
   <style>
+    /* Fijamos visibilidad de paneles */
     .panel{display:none} .panel.is-active{display:block}
+
+    /* 🔧 FIXES de galería: que la imagen SIEMPRE llene el marco cuadrado */
+    .tile{ position:relative; border-radius:18px; overflow:hidden; }
+    .tile .lb-trigger{
+      display:block; width:100%; height:100%; padding:0; margin:0; border:0; background:none;
+      cursor:pointer;
+    }
+    .tile .thumb{
+      width:100%; aspect-ratio: 1 / 1; overflow:hidden;
+      /* evitamos bordes “grises” por gaps de subpíxel */
+      background: color-mix(in oklab, var(--bg1) 70%, white 4%);
+    }
+    .tile .thumb > img.thumb-img{
+      display:block; width:100%; height:100%;
+      object-fit: cover; object-position: center;
+      /* más especificidad que el global para ganar siempre en galería */
+      image-rendering: auto;
+      border: 0;
+    }
   </style>
 
   <script is:inline>

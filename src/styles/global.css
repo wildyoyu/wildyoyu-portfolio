@@ -190,3 +190,12 @@ a:hover{ text-decoration: underline; text-underline-offset: 6px; }
 
 /* Utilidad de ocultación accesible (por si la necesitas global) */
 .sr{ position:absolute !important; width:1px !important; height:1px !important; padding:0 !important; margin:-1px !important; overflow:hidden !important; clip:rect(0,0,0,0) !important; white-space:nowrap !important; border:0 !important; }
+
+/* ===== Gallery hardening (evita letterboxing en tiles) ===== */
+.ig-grid .tile .thumb{ aspect-ratio:1/1; }
+.ig-grid .tile .thumb > img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+  object-position:center !important;
+}
