@@ -1,8 +1,311 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import CalendarFull from "../components/CalendarFull.astro";
----
+import { astroEvents } from "../data/events";
 
-<BaseLayout title="Calendario astronómico — Wildyoyu" description="Eventos astronómicos">
-  <CalendarFull />
+const now = new Date();
+const year = now.getFullYear();
+const month = now.getMonth() + 1;
+---
+<BaseLayout title="Calendario astronómico — Wildyoyu" description="Eventos astronómicos destacados">
+  <section class="section" id="calendar">
+    <div class="container">
+      <h1 class="h1" style="margin-bottom:.6rem;">Calendario astronómico</h1>
+      <p class="lead" style="margin:0 0 1rem 0">Toca un día con evento para ver detalles.</p>
+
+      <div class="cal" id="cal-root"
+           data-year={year} data-month={month}
+           data-events={JSON.stringify(astroEvents)}>
+        <header class="cal__hdr">
+          <div class="cal__title h2" style="margin:.2rem 0"></div>
+          <div class="cal__nav">
+            <button class="btn cal__btn" data-nav="-1" aria-label="Mes anterior">‹</button>
+            <button class="btn cal__btn" data-nav="+1" aria-label="Mes siguiente">›</button>
+          </div>
+        </header>
+
+        <div class="cal__grid" aria-label="Calendario mensual">
+          <div class="cal__dow">L</div><div class="cal__dow">M</div><div class="cal__dow">X</div>
+          <div class="cal__dow">J</div><div class="cal__dow">V</div><div class="cal__dow">S</div><div class="cal__dow">D</div>
+        </div>
+
+        <div class="cal__legend">
+          <span class="lg" data-type="luna"><i>🌕</i>Luna llena</span>
+          <span class="lg" data-type="luna_nueva"><i>🌑</i>Luna nueva</span>
+          <span class="lg" data-type="superluna"><i>🌕✨</i>Superluna</span>
+          <span class="lg" data-type="lluvia"><i>☄️</i>Lluvia</span>
+          <span class="lg" data-type="planeta"><i>🪐</i>Planeta</span>
+          <span class="lg" data-type="eclipse"><i>🌒</i>Eclipse</span>
+          <span class="lg" data-type="otro"><i>✦</i>Otro</span>
+        </div>
+
+        <div class="cal__list">
+          <h3 class="h2" style="font-size:18px; margin:.8rem 0 .4rem">Próximos</h3>
+          <ul class="cal__upcoming"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Nota: pequeña, fondo claro, texto negro -->
+  <dialog id="note" class="note" aria-label="Detalles del evento">
+    <div class="note__card">
+      <button class="note__x" aria-label="Cerrar">×</button>
+      <div class="note__head">
+        <strong id="note-date">Fecha</strong>
+      </div>
+      <ul id="note-list" class="note__list"></ul>
+    </div>
+  </dialog>
+
+  <style>
+    :root{
+      /* Colores por tipo */
+      --c-today:   #ffe28a;
+      --c-luna:    #8ecae6;
+      --c-luna_nueva:#b7c0c7;
+      --c-superluna:#ffd166;
+      --c-lluvia:  #8aff9a;
+      --c-planeta: #cab8ff;
+      --c-eclipse: #ff8a8a;
+      --c-otro:    #c8d0c9;
+      --grid-line: color-mix(in oklab, var(--fg) 26%, transparent);
+    }
+
+    .cal{display:grid; gap:16px; max-width:min(1024px, 96vw); margin-inline:auto}
+    .cal__hdr{display:flex; align-items:center; justify-content:space-between; gap:10px}
+    .cal__title{text-transform:capitalize; font-weight:900}
+
+    /* Rejilla con líneas claras y fondo base */
+    .cal__grid{
+      --rows: 7;
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      border-radius: 12px; overflow:hidden;
+      border:1px solid var(--grid-line);
+      background:
+        linear-gradient(to right, var(--grid-line) 1px, transparent 1px) 0 0/ calc(100%/7) 100% repeat,
+        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px) 0 0/ 100% calc(100%/var(--rows)) repeat,
+        color-mix(in oklab, var(--bg1) 72%, white 6%);
+    }
+
+    .cal__dow, .cal__cell{
+      min-height: 76px; padding:8px 10px; display:grid; align-content:start;
+    }
+    .cal__dow{
+      text-align:center; align-content:center; font-weight:900;
+      background: color-mix(in oklab, var(--bg1) 86%, white 4%);
+    }
+
+    /* Celda (día) */
+    .cal__cell{
+      position:relative; cursor:default;
+      transition: filter .12s ease, transform .12s ease;
+      background: transparent; /* será sobrescrito por data-type/today */
+    }
+    .cal__cell:hover{ filter: brightness(1.05) saturate(1.02); transform: translateY(-1px); }
+    .cal__cell.has-ev{ cursor:pointer; }
+
+    /* Número del día (esquina) */
+    .cal__num{
+      position:absolute; top:6px; right:8px;
+      font-weight:900; opacity:.95;
+    }
+
+    /* Emoji centrado */
+    .cal__emo{
+      display:grid; place-items:center;
+      font-size: 22px; line-height:1;
+      margin-top: 6px;
+    }
+
+    /* Hoy: amarillo */
+    .cal__cell.is-today{
+      background: color-mix(in oklab, var(--c-today) 78%, white 8%);
+      color: #111;
+      box-shadow: inset 0 0 0 2px rgba(0,0,0,.15);
+    }
+
+    /* Fondo completo por tipo */
+    .cal__cell[data-type="luna"]{        background: color-mix(in oklab, var(--c-luna) 60%, white 18%);       color:#0d1b2a; }
+    .cal__cell[data-type="luna_nueva"]{  background: color-mix(in oklab, var(--c-luna_nueva) 55%, white 18%); color:#0e1419; }
+    .cal__cell[data-type="superluna"]{   background: color-mix(in oklab, var(--c-superluna) 70%, white 18%);  color:#3a2d00; }
+    .cal__cell[data-type="lluvia"]{      background: color-mix(in oklab, var(--c-lluvia) 55%, white 18%);     color:#0d2a14; }
+    .cal__cell[data-type="planeta"]{     background: color-mix(in oklab, var(--c-planeta) 55%, white 18%);    color:#1b1230; }
+    .cal__cell[data-type="eclipse"]{     background: color-mix(in oklab, var(--c-eclipse) 60%, white 18%);    color:#2a0c0c; }
+    .cal__cell[data-type="otro"]{        background: color-mix(in oklab, var(--c-otro) 55%, white 18%);       color:#111; }
+
+    /* Leyenda (emoji + color) */
+    .cal__legend{ display:flex; flex-wrap:wrap; gap:10px; opacity:.95; font-size:14px }
+    .lg{ display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; border:1px solid var(--grid-line); background: rgba(255,255,255,.06); cursor:pointer }
+    .lg i{ font-style:normal; }
+
+    /* Próximos */
+    .cal__list ul{margin:0; padding-left:18px}
+
+    /* ===== Nota clara pequeña ===== */
+    .note{ inset:0; border:0; padding:0; background: transparent; }
+    .note::backdrop{ background: rgba(0,0,0,.55); backdrop-filter: blur(1px); }
+    .note__card{
+      position: fixed; left: 50%; top: 18vh; transform: translateX(-50%);
+      width: min(560px, 92vw);
+      background: #fff; color:#111;
+      border-radius: 14px;
+      border: 1px solid rgba(0,0,0,.1);
+      box-shadow: 0 22px 80px rgba(0,0,0,.35);
+      padding: 14px 14px 12px;
+    }
+    .note__x{
+      position:absolute; top:8px; right:8px;
+      width:34px; height:34px; border-radius:999px;
+      background:#111; color:#fff; border:0; cursor:pointer;
+    }
+    .note__head{ font-weight:900; margin-bottom:.4rem }
+    .note__list{ margin:0; padding-left:18px }
+    .note__list li+li{ margin-top:.25rem }
+  </style>
+
+  <script is:inline>
+    const ROOT = document.getElementById('cal-root');
+    const GRID = ROOT.querySelector('.cal__grid');
+    const TITLE = ROOT.querySelector('.cal__title');
+    const UPC = ROOT.querySelector('.cal__upcoming');
+    const EVS = (() => { try { return JSON.parse(ROOT.dataset.events || '[]'); } catch { return []; } })();
+
+    // Etiquetas + emoji
+    const LABEL = {
+      luna:'Luna llena', luna_nueva:'Luna nueva', superluna:'Superluna',
+      lluvia:'Lluvia', planeta:'Planeta', eclipse:'Eclipse', otro:'Evento'
+    };
+    const EMOJI = { luna:'🌕', luna_nueva:'🌑', superluna:'🌕✨', lluvia:'☄️', planeta:'🪐', eclipse:'🌒', otro:'✦' };
+    const isSuperMoon = (ev) => (ev.type === 'luna') && (ev.super || /superluna/i.test(ev.title));
+
+    // Prioridad cuando coinciden varios eventos
+    const ORDER = ['superluna','eclipse','lluvia','planeta','luna','luna_nueva','otro'];
+    const pickType = (list) => {
+      if (!list.length) return null;
+      const norm = list.map(e => isSuperMoon(e) ? { ...e, type:'superluna' } : e);
+      norm.sort((a,b)=> ORDER.indexOf(a.type||'otro') - ORDER.indexOf(b.type||'otro'));
+      return norm[0].type || 'otro';
+    };
+
+    const todayISO = new Date().toISOString().slice(0,10);
+
+    const monthMatrix = (y,m) => {
+      const first = new Date(y, m-1, 1);
+      const start = (first.getDay() + 6) % 7; // lunes=0
+      const days  = new Date(y, m, 0).getDate();
+      const cells = [];
+      for(let i=0;i<start;i++) cells.push({d:null});
+      for(let d=1; d<=days; d++){
+        const iso = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        cells.push({d, iso});
+      }
+      while(cells.length % 7) cells.push({d:null});
+      return cells;
+    };
+
+    function render(y,m){
+      ROOT.dataset.year=y; ROOT.dataset.month=m;
+      TITLE.textContent = new Date(y, m-1, 1).toLocaleString('es-ES',{month:'long', year:'numeric'});
+      GRID.querySelectorAll('.cal__cell').forEach(n=>n.remove());
+
+      // Índice por día
+      const byDay = new Map();
+      EVS.forEach(ev => { const arr = byDay.get(ev.date)||[]; arr.push(ev); byDay.set(ev.date, arr); });
+
+      // Calcula filas para el fondo de cuadrícula
+      const cells = monthMatrix(y,m);
+      const rows  = 1 + Math.ceil(cells.length / 7); // 1 fila cabecera + semanas
+      GRID.style.setProperty('--rows', rows);
+
+      const frag = document.createDocumentFragment();
+      for (const cell of cells){
+        const div = document.createElement('div');
+        div.className = 'cal__cell' + (!cell.d ? ' is-empty' : '');
+        if (cell.d){
+          const num=document.createElement('div'); num.className='cal__num'; num.textContent=String(cell.d);
+          div.appendChild(num);
+
+          if (cell.iso === todayISO) div.classList.add('is-today');
+
+          const events = byDay.get(cell.iso) || [];
+          if (events.length){
+            div.classList.add('has-ev');
+            const t = pickType(events);
+            if (t) div.setAttribute('data-type', t);
+
+            // Emoji centrado
+            const em = document.createElement('div');
+            em.className = 'cal__emo';
+            const emKey = t || 'otro';
+            em.textContent = EMOJI[emKey] || '✦';
+            div.appendChild(em);
+
+            // Para la nota
+            div.dataset.iso = cell.iso;
+            div.title = events.map(e => `${LABEL[isSuperMoon(e)?'superluna':(e.type||'otro')]} — ${e.title}`).join(' • ');
+          }
+        }
+        frag.appendChild(div);
+      }
+      GRID.appendChild(frag);
+
+      // Próximos (lista)
+      if (UPC){
+        const today = new Date(new Date().toDateString());
+        const items = EVS
+          .filter(ev => new Date(ev.date) >= today)
+          .sort((a,b)=> new Date(a.date) - new Date(b.date))
+          .slice(0,10);
+        UPC.innerHTML = items.map(ev => {
+          const ds = new Date(ev.date).toLocaleDateString('es-ES',{day:'2-digit',month:'short'});
+          const tag = isSuperMoon(ev) ? 'superluna' : (ev.type || 'otro');
+          return `<li><strong>${ds}</strong> — ${EMOJI[tag]||'✦'} ${LABEL[tag]} · ${ev.title}</li>`;
+        }).join('');
+      }
+    }
+
+    ROOT.querySelectorAll('.cal__btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        let y = Number(ROOT.dataset.year), m = Number(ROOT.dataset.month);
+        m += Number(btn.dataset.nav); if (m<1){m=12;y--} if (m>12){m=1;y++}
+        render(y,m);
+      });
+    });
+
+    // Leyenda: foco temporal (desatura el resto)
+    ROOT.querySelectorAll('.lg').forEach(lg=>{
+      lg.addEventListener('click', () => {
+        const t = lg.dataset.type;
+        GRID.querySelectorAll('.cal__cell.has-ev').forEach(c=>{
+          const on = (c.getAttribute('data-type') === t);
+          c.style.filter = on ? 'none' : 'grayscale(0.9) opacity(0.55)';
+        });
+        setTimeout(()=> GRID.querySelectorAll('.cal__cell.has-ev').forEach(c=> c.style.filter=''), 900);
+      });
+    });
+
+    // Nota (clara, pequeña)
+    const dlg = document.getElementById('note');
+    const noteDate = document.getElementById('note-date');
+    const noteList = document.getElementById('note-list');
+    document.querySelector('.note__x')?.addEventListener('click', ()=> ('close' in dlg ? dlg.close() : dlg.removeAttribute('open')) );
+
+    GRID.addEventListener('click', (e) => {
+      const cell = e.target.closest('.cal__cell.has-ev'); if (!cell) return;
+      const iso = cell.dataset.iso;
+      const items = (EVS || []).filter(ev => ev.date === iso);
+
+      // Rellena nota
+      noteDate.textContent = new Date(iso).toLocaleDateString('es-ES', { day:'2-digit', month:'long', year:'numeric' });
+      noteList.innerHTML = items.map(ev => {
+        const t = isSuperMoon(ev) ? 'superluna' : (ev.type || 'otro');
+        return `<li><strong>${EMOJI[t]||'✦'} ${LABEL[t]}</strong> — ${ev.title}</li>`;
+      }).join('');
+
+      if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open','');
+    });
+
+    render(Number(ROOT.dataset.year), Number(ROOT.dataset.month));
+  </script>
 </BaseLayout>

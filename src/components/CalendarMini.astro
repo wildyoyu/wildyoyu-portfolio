@@ -33,13 +33,10 @@ const next = astroEvents
 
 <style>
   .mini-card{
-    display:block;
-    padding:16px 18px;
-    border-radius: var(--radius);
+    display:block; padding:16px 18px; border-radius: var(--radius);
     text-decoration: none;
     border: 1px solid color-mix(in oklab, var(--accent) 55%, var(--stroke));
-    background:
-      linear-gradient(180deg, color-mix(in oklab, var(--bg1) 40%, var(--accent) 22%), color-mix(in oklab, var(--bg1) 64%, black 10%));
+    background: linear-gradient(180deg, color-mix(in oklab, var(--bg1) 40%, var(--accent) 22%), color-mix(in oklab, var(--bg1) 64%, black 10%));
     box-shadow: var(--shadow-md);
     transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
   }
@@ -54,16 +51,13 @@ const next = astroEvents
     font-size: clamp(1.05rem, 2.2vw, 1.25rem);
   }
   .mini-cta{
-    font-weight:800;
-    padding:.35rem .7rem;
-    border-radius: 999px;
+    font-weight:800; padding:.35rem .7rem; border-radius: 999px;
     border:1px solid color-mix(in oklab, var(--accent) 55%, var(--stroke));
     background: color-mix(in oklab, var(--fg) 80%, transparent);
     color: color-mix(in oklab, var(--bg0) 92%, black 0%);
     white-space: nowrap;
   }
 
-  /* 📱 Ajustes móviles: CTA más pequeña y tipografía contenida */
   @media (max-width: 520px){
     .mini-title{ font-size: 1rem; }
     .mini-cta{ font-size: .85rem; padding:.3rem .6rem; }
