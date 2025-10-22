@@ -19,8 +19,8 @@ function itemsBy(cat) {
 }
 
 const tabs = [
-  { id: "wildlife", title: "Wildlife", items: itemsBy("wildlife") },
-  { id: "macro",    title: "Macro space", items: itemsBy("macro") },
+  { id: "wildlife", title: "Wildlife",      items: itemsBy("wildlife") },
+  { id: "macro",    title: "Macro space",   items: itemsBy("macro") },
   { id: "night",    title: "Night moments", items: itemsBy("night") },
 ];
 ---
@@ -29,39 +29,55 @@ const tabs = [
     <div class="container">
       <div class="tabs" role="tablist">
         {tabs.map((t, i) => (
-          <button class={`tab${i===0?' is-active':''}`} data-tab={t.id} aria-selected={i===0?'true':'false'} aria-controls={`panel-${t.id}`} id={`tab-${t.id}`} type="button">
+          <button
+            class={`tab${i===0?' is-active':''}`}
+            data-tab={t.id}
+            aria-selected={i===0?'true':'false'}
+            aria-controls={`panel-${t.id}`}
+            id={`tab-${t.id}`}
+            type="button">
             {t.title}
           </button>
         ))}
       </div>
 
       {tabs.map((t, i) => (
-        <div id={`panel-${t.id}`} class={`panel${i===0?' is-active':''}`} role="tabpanel" aria-labelledby={`tab-${t.id}`}
-             data-cat={t.id}
-             data-items={JSON.stringify(t.items)}>
+        <div
+          id={`panel-${t.id}`}
+          class={`panel${i===0?' is-active':''}`}
+          role="tabpanel"
+          aria-labelledby={`tab-${t.id}`}
+          data-cat={t.id}
+          data-items={JSON.stringify(t.items)}
+        >
           {t.items.length === 0 ? (
             <p class="lead">Aún no hay fotos en {t.title.toLowerCase()}.</p>
           ) : (
-            <div class="ig-grid">
+            <div class="masonry">
               {t.items.map((it, idx) => {
-                // Mejora de carga: primeras 3 por panel con más prioridad
                 const eager = idx === 0 ? 'eager' : 'lazy';
                 const prio  = idx < 3 ? 'high' : 'auto';
                 return (
-                  <article class="tile">
-                    <button class="lb-trigger" type="button"
-                            data-idx={idx} data-slug={it.slug}
-                            data-src={it.src} data-alt={it.alt} data-title={it.title}>
-                      <div class="thumb">
-                        <img class="thumb-img"
-                             src={it.src}
-                             alt={it.alt}
-                             width={it.w} height={it.h}
-                             loading={eager}
-                             decoding="async"
-                             fetchpriority={prio}
-                             sizes="(max-width:680px) 33vw, (max-width:1024px) 25vw, 18vw" />
-                      </div>
+                  <article class="pin">
+                    <button
+                      class="lb-trigger card"
+                      type="button"
+                      data-idx={idx}
+                      data-slug={it.slug}
+                      data-src={it.src}
+                      data-alt={it.alt}
+                      data-title={it.title}
+                      aria-label={`Abrir ${it.title}`}
+                    >
+                      <img
+                        src={it.src}
+                        alt={it.alt}
+                        width={it.w}
+                        height={it.h}
+                        loading={eager}
+                        decoding="async"
+                        fetchpriority={prio}
+                      />
                     </button>
                   </article>
                 );
@@ -74,40 +90,64 @@ const tabs = [
   </section>
 
   <style>
-    /* Fijamos visibilidad de paneles */
-    .panel{display:none} .panel.is-active{display:block}
+    /* Mostrar/ocultar paneles de pestañas */
+    .panel{ display:none; }
+    .panel.is-active{ display:block; }
 
-    /* 🔧 FIXES de galería: que la imagen SIEMPRE llene el marco cuadrado */
-    .tile{ position:relative; border-radius:18px; overflow:hidden; }
-    .tile .lb-trigger{
-      display:block; width:100%; height:100%; padding:0; margin:0; border:0; background:none;
-      cursor:pointer;
+    /* ===== Masonry estilo Pinterest =====
+       - 3 columnas en móvil
+       - 5 en escritorio
+       - separación mínima (2px)
+    */
+    .masonry{
+      column-count: 2;   /* phones */
+      column-gap: 14px;
+      padding: 4px;      /* margen lateral suave */
     }
-    .tile .thumb{
-      width:100%; aspect-ratio: 1 / 1; overflow:hidden;
-      /* evitamos bordes “grises” por gaps de subpíxel */
-      background: color-mix(in oklab, var(--bg1) 70%, white 4%);
+    @media (min-width: 900px){ .masonry{ column-count: 4; } }
+    @media (min-width: 1200px){ .masonry{ column-count: 3; } }
+
+    .pin{
+      break-inside: avoid;
+      margin-bottom: 8px;         /* espacio vertical mínimo */
     }
-    .tile .thumb > img.thumb-img{
-      display:block; width:100%; height:100%;
-      object-fit: cover; object-position: center;
-      /* más especificidad que el global para ganar siempre en galería */
-      image-rendering: auto;
-      border: 0;
+
+    /* Tarjeta clicable con radio y sin forzar aspect-ratio */
+    .card{
+      display:block;
+      width:100%;
+      padding:0; margin:0; border:0; cursor:pointer;
+      background:none;
+      border-radius: 12px;
+      overflow:hidden;
+      box-shadow: none;           /* limpio; añade si quieres más relieve */
+      transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+    }
+    .card:hover{ transform: translateY(-1px); filter: saturate(1.03) contrast(1.02); }
+
+    .card img{
+      display:block;
+      width:100%;
+      height:auto;                 /* altura natural → masonry real */
+      object-fit: cover;
     }
   </style>
 
   <script is:inline>
     const ids = ['wildlife','macro','night'];
     const tabs = Array.from(document.querySelectorAll('.tab'));
-    const panels = ids.map(id=>document.getElementById('panel-'+id));
+    const panels = ids.map(id => document.getElementById('panel-'+id));
     function activate(id){
-      tabs.forEach(b=>{const on=b.dataset.tab===id; b.classList.toggle('is-active',on); b.setAttribute('aria-selected',on?'true':'false');});
-      panels.forEach(p=>p?.classList.toggle('is-active', p.id==='panel-'+id));
+      tabs.forEach(b=>{
+        const on = b.dataset.tab===id;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      panels.forEach(p => p?.classList.toggle('is-active', p.id==='panel-'+id));
       history.replaceState(null,'','#'+id);
     }
     const init = (location.hash.replace('#','')||'').split(':')[0];
     activate(ids.includes(init)?init:ids[0]);
-    tabs.forEach(b=>b.addEventListener('click',()=>activate(b.dataset.tab)));
+    tabs.forEach(b => b.addEventListener('click', () => activate(b.dataset.tab)));
   </script>
 </BaseLayout>

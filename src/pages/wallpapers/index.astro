@@ -10,8 +10,8 @@ const walls = (await getCollection("walls")).sort(
 <BaseLayout title="Fondos de pantalla — Wildyoyu" description="Descarga fondos de pantalla de Wildyoyu">
   <section class="section" id="wallpapers">
     <div class="container">
-      <h2 class="h2">Fondos de pantalla</h2>
-      <p class="intro">Descarga libre para uso personal. Optimizado para móvil, tablet y escritorio.</p>
+      <h2 class="h2">¡Fondos de pantalla de los yoyus!</h2>
+      <p class="intro">¡QUÉ PASA YOYUS! Si eres un Yoyu de verdad, tienes que llevar uno de estos fondos. ¿Cuál vas a elegir? Si quieres uno especial o personalizado, ¡solo tienes que pedirlo! </p>
 
       <!-- Masonry Pinterest -->
       <div class="masonry" id="masonry">
@@ -77,22 +77,22 @@ const walls = (await getCollection("walls")).sort(
 /* Masonry con separación mínima */
 .masonry {
   column-count: 2;
-  column-gap: 2px; /* separación entre columnas */
+  column-gap: 14px; /* separación entre columnas */
   width: 100%;
   margin: 0;
   padding: 0;
 }
 @media (min-width: 780px) {
-  .masonry { column-count: 3; column-gap: 2px; }
+  .masonry { column-count: 3; column-gap: 8px; }
 }
 @media (min-width: 1100px) {
-  .masonry { column-count: 4; column-gap: 2px; }
+  .masonry { column-count: 4; column-gap: 8px; }
 }
 
 /* Cada pin con separación vertical mínima */
 .pin {
   break-inside: avoid;
-  margin-bottom: 2px; /* separación entre filas */
+  margin-bottom: 8px; /* separación entre filas */
 }
 
 /* Tarjetas redondeadas, sin sombras */
