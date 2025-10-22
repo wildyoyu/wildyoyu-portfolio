@@ -10,8 +10,8 @@ const walls = (await getCollection("walls")).sort(
 <BaseLayout title="Fondos de pantalla — Wildyoyu" description="Descarga fondos de pantalla de Wildyoyu">
   <section class="section" id="wallpapers">
     <div class="container">
-      <h2 class="h2">¡Fondos de pantalla de los yoyus!</h2>
-      <p class="intro">Si eres un yoyu de verdad, tienes que llevar uno de estos fondos. Están guapísimos.</p>
+      <h2 class="h2">Fondos de pantalla</h2>
+      <p class="intro">Descarga libre para uso personal. Optimizado para móvil, tablet y escritorio.</p>
 
       <div class="masonry" id="masonry">
         {walls.map(({ data }, i) => (
@@ -26,7 +26,6 @@ const walls = (await getCollection("walls")).sort(
                 decoding="async"
                 fetchpriority={i < 6 ? 'high' : 'auto'}
               />
-              <!-- ÚNICO botón -->
               <a class="dl" href={data.src} download aria-label="Descargar fondo">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"
@@ -43,52 +42,60 @@ const walls = (await getCollection("walls")).sort(
 
   <style>
     .section{ padding: clamp(2rem,5vw,3.5rem) 0; }
-    .intro{ opacity:.85; text-align:center; max-width:60ch; margin:.5rem auto 1.3rem; }
+    .intro{ opacity:.85; text-align:center; max-width:60ch; margin:.5rem auto 1.1rem; }
 
-    /* Masonry tipo Pinterest con CSS columns */
-    .masonry{ column-gap:16px; column-count:1; }
-    @media (min-width:560px){ .masonry{ column-count:2; } }
-    @media (min-width:900px){ .masonry{ column-count:3; } }
-    @media (min-width:1200px){ .masonry{ column-count:4; } }
+    /* ===== Masonry tipo Pinterest =====
+       -> 2 columnas también en móvil
+       -> separación mínima entre tarjetas
+    */
+    .masonry{
+      column-count: 2;       /* 🔸 SIEMPRE dos columnas por defecto (móvil incluido) */
+      column-gap: 2px;       /* 🔸 separación mínima lateral */
+    }
+    @media (min-width: 780px){ .masonry{ column-count: 3; column-gap: 10px; } }
+    @media (min-width: 1200px){ .masonry{ column-count: 4; column-gap: 12px; } }
 
-    .pin{ break-inside:avoid; margin-bottom:16px; }
+    .pin{
+      break-inside: avoid;
+      margin-bottom: 2px;     /* 🔸 separación mínima vertical */
+    }
 
     .card{
       position:relative; display:block;
-      border-radius:18px; overflow:hidden;
+      border-radius:14px; overflow:hidden;
       background: color-mix(in oklab, var(--bg1) 70%, white 5%);
-      border:1px solid var(--stroke);
+      border: 1px solid var(--stroke);
       box-shadow: var(--shadow-md);
       transition: transform .25s ease, box-shadow .25s ease;
     }
-    .card:hover{ transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+    .card:hover{ transform: translateY(-1px); box-shadow: var(--shadow-lg); }
 
     .card img{
       display:block; width:100%; height:auto; object-fit:cover;
     }
 
-    /* Botón redondo único (descargar) */
+    /* Botón único: Descargar */
     .dl{
-      position:absolute; right:10px; bottom:10px;
+      position:absolute; right:8px; bottom:8px;
       display:grid; place-items:center;
-      width:38px; height:38px; border-radius:50%;
+      width:34px; height:34px; border-radius:50%;
       border:1px solid var(--stroke);
       background: color-mix(in oklab, var(--bg1) 76%, white 6%);
       color: var(--fg);
       text-decoration:none;
-      opacity:0; transform: translateY(4px);
+      opacity:0; transform: translateY(3px);
       transition: opacity .2s ease, transform .2s ease, background .2s ease, border-color .2s ease;
     }
     .card:hover .dl{ opacity:1; transform: translateY(0); }
     .dl:hover{ background: var(--fg); color: color-mix(in oklab, var(--bg0) 92%, black); border-color: transparent; }
     .dl svg{ width:18px; height:18px; display:block; }
 
-    /* Móvil: sin hover, que sea visible siempre */
+    /* En móviles (sin hover) que el botón se vea siempre */
     @media (hover:none){
       .dl{ opacity:1; transform:none; background: var(--fg); color: color-mix(in oklab, var(--bg0) 92%, black); }
     }
 
-    /* Defensa anti “A” fantasma por anchors vacíos */
+    /* Defensa anti “A” fantasma */
     .card a::before{ content:none !important; }
   </style>
 </BaseLayout>
