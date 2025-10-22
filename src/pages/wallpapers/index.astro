@@ -13,9 +13,10 @@ const walls = (await getCollection("walls")).sort(
       <h2 class="h2">Fondos de pantalla</h2>
       <p class="intro">Descarga libre para uso personal. Optimizado para móvil, tablet y escritorio.</p>
 
+      <!-- Masonry Pinterest -->
       <div class="masonry" id="masonry">
         {walls.map(({ data }, i) => (
-          <article class="pin">
+          <article class="pin" data-src={data.src} data-alt={data.alt || "Fondo de pantalla de Wildyoyu"}>
             <figure class="card">
               <img
                 src={data.src}
@@ -26,6 +27,7 @@ const walls = (await getCollection("walls")).sort(
                 decoding="async"
                 fetchpriority={i < 6 ? 'high' : 'auto'}
               />
+              <!-- Botón único (descargar) -->
               <a class="dl" href={data.src} download aria-label="Descargar fondo">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"
@@ -40,41 +42,83 @@ const walls = (await getCollection("walls")).sort(
     </div>
   </section>
 
+  <!-- Visor superpuesto (lightbox simple para un solo fondo) -->
+  <dialog id="wallbox" class="wb" aria-label="Vista previa del fondo">
+    <button class="wb-close" aria-label="Cerrar">×</button>
+    <div class="wb-wrap">
+      <img id="wb-img" alt="" />
+      <a id="wb-dl" class="wb-dl" download title="Descargar">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Descargar</span>
+      </a>
+    </div>
+  </dialog>
+
   <style>
     .section{ padding: clamp(2rem,5vw,3.5rem) 0; }
     .intro{ opacity:.85; text-align:center; max-width:60ch; margin:.5rem auto 1.1rem; }
 
     /* ===== Masonry tipo Pinterest =====
-       -> 2 columnas también en móvil
-       -> separación mínima entre tarjetas
+       - 2 columnas en móvil (SIEMPRE)
+       - 3 en tablet
+       - 4 en escritorio
+       - separación mínima configurable
     */
-    .masonry{
-      column-count: 2;       /* 🔸 SIEMPRE dos columnas por defecto (móvil incluido) */
-      column-gap: 2px;       /* 🔸 separación mínima lateral */
-    }
-    @media (min-width: 780px){ .masonry{ column-count: 3; column-gap: 10px; } }
-    @media (min-width: 1200px){ .masonry{ column-count: 4; column-gap: 12px; } }
+    /* Contenedor principal con ligero margen lateral */
+#wallpapers .container {
+  padding: 2px;
+  margin: 0 auto;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
 
-    .pin{
-      break-inside: avoid;
-      margin-bottom: 2px;     /* 🔸 separación mínima vertical */
-    }
+/* Masonry con separación mínima */
+.masonry {
+  column-count: 2;
+  column-gap: 2px; /* separación entre columnas */
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+@media (min-width: 780px) {
+  .masonry { column-count: 3; column-gap: 2px; }
+}
+@media (min-width: 1100px) {
+  .masonry { column-count: 4; column-gap: 2px; }
+}
 
-    .card{
-      position:relative; display:block;
-      border-radius:14px; overflow:hidden;
-      background: color-mix(in oklab, var(--bg1) 70%, white 5%);
-      border: 1px solid var(--stroke);
-      box-shadow: var(--shadow-md);
-      transition: transform .25s ease, box-shadow .25s ease;
-    }
-    .card:hover{ transform: translateY(-1px); box-shadow: var(--shadow-lg); }
+/* Cada pin con separación vertical mínima */
+.pin {
+  break-inside: avoid;
+  margin-bottom: 2px; /* separación entre filas */
+}
 
-    .card img{
-      display:block; width:100%; height:auto; object-fit:cover;
-    }
+/* Tarjetas redondeadas, sin sombras */
+.card {
+  position: relative;
+  display: block;
+  border-radius: 10px;
+  overflow: hidden;
+  border: none;
+  box-shadow: none;
+  margin: 0;
+}
 
-    /* Botón único: Descargar */
+/* Imagen ajustada con redondeo */
+.card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  margin: 0;
+  padding: 0;
+  border-radius: 10px;
+}
+
+
+    /* Botón único: Descargar (tarjeta) */
     .dl{
       position:absolute; right:8px; bottom:8px;
       display:grid; place-items:center;
@@ -95,7 +139,96 @@ const walls = (await getCollection("walls")).sort(
       .dl{ opacity:1; transform:none; background: var(--fg); color: color-mix(in oklab, var(--bg0) 92%, black); }
     }
 
-    /* Defensa anti “A” fantasma */
+    /* ===== Lightbox (wb) ===== */
+    .wb{
+      inset:0; border:0; padding:0; background: transparent;
+    }
+    .wb::backdrop{
+      background: rgba(0,0,0,.7);
+      backdrop-filter: blur(2px);
+    }
+    .wb .wb-wrap{
+      position: fixed; inset: 0;
+      display:grid; place-items:center;
+      padding: clamp(10px, 4vw, 26px);
+    }
+    .wb #wb-img{
+      max-width: min(96vw, 1400px);
+      max-height: 86vh;
+      width: auto; height: auto;
+      display:block; object-fit: contain;
+      border-radius: 16px;
+      outline: 1px solid var(--stroke);
+      box-shadow: 0 30px 110px rgba(0,0,0,.55);
+      background: color-mix(in oklab, var(--bg1) 70%, white 4%);
+    }
+    .wb-close{
+      position: fixed; top: 12px; right: 12px;
+      width:44px; height:44px; border-radius:50%;
+      border: 1px solid var(--stroke);
+      background: color-mix(in oklab, var(--fg) 76%, transparent);
+      color: color-mix(in oklab, var(--bg0) 92%, black 0%);
+      font-size: 22px; line-height: 1; cursor:pointer;
+      display:grid; place-items:center;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    .wb-close:hover{ background: var(--fg); color: var(--bg0); }
+
+    .wb-dl{
+      position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+      display:inline-flex; align-items:center; gap:10px;
+      padding: .6rem .9rem; border-radius: 999px;
+      border:1px solid var(--stroke);
+      background: color-mix(in oklab, var(--fg) 78%, transparent);
+      color: color-mix(in oklab, var(--bg0) 92%, black 0%);
+      font-weight: 900; text-decoration:none;
+      box-shadow: 0 16px 40px rgba(0,0,0,.35);
+    }
+    .wb-dl:hover{ background: var(--fg); color: var(--bg0); }
+    .wb-dl svg{ width:20px; height:20px; display:block; }
+
+    /* Defensa anti “A” fantasma por anchors vacíos */
     .card a::before{ content:none !important; }
   </style>
+
+  <script is:inline>
+    const masonry = document.getElementById('masonry');
+    const dlg = document.getElementById('wallbox');
+    const img = document.getElementById('wb-img');
+    const btnClose = document.querySelector('.wb-close');
+    const btnDl = document.getElementById('wb-dl');
+
+    function openBox(src, alt){
+      img.src = src;
+      img.alt = alt || 'Fondo';
+      btnDl.href = src;
+      if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open','');
+      document.documentElement.style.overflow = 'hidden';
+    }
+    function closeBox(){
+      if ('close' in dlg) dlg.close(); else dlg.removeAttribute('open');
+      img.removeAttribute('src');
+      document.documentElement.style.overflow = '';
+    }
+
+    masonry.addEventListener('click', (e) => {
+      const card = e.target.closest('.pin');
+      if (!card) return;
+      // Si se clicó el botón de descarga, no abrimos el visor
+      if (e.target.closest('.dl')) return;
+      e.preventDefault();
+      openBox(card.dataset.src, card.dataset.alt);
+    }, { passive: false });
+
+    btnClose.addEventListener('click', closeBox);
+    dlg.addEventListener('click', (e) => {
+      const r = img.getBoundingClientRect();
+      const inside = e.clientX>=r.left && e.clientX<=r.right && e.clientY>=r.top && e.clientY<=r.bottom;
+      if (!inside) closeBox();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (!dlg.open) return;
+      if (e.key === 'Escape') closeBox();
+    });
+  </script>
 </BaseLayout>
