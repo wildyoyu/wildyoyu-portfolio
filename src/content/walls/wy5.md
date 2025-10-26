@@ -1,0 +1,9 @@
+---
+title: "YoyusLightBlue"
+src: "/wallpapers/wy5.jpeg"
+alt: "YoyusLightBlue"
+w: 2560
+h: 1440
+date: 2025-10-01
+orientation: landscape
+---

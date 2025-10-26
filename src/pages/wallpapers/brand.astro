@@ -12,39 +12,22 @@ const isBrand = (data) => {
   return byFlag || byName;
 };
 
-// Separamos corporativos del resto
 const brandWalls = all.filter(({ data }) => isBrand(data));
-const normalWalls = all.filter(({ data }) => !isBrand(data));
-
-// Portada fija de la carpeta (asegúrate de subirla a /public/wallpapers/wy1.jpeg)
-const brandCover = "/wallpapers/wy7.jpg";
 ---
 
-<BaseLayout title="Fondos de pantalla — Wildyoyu" description="Descarga fondos de pantalla de Wildyoyu">
+<BaseLayout title="Wildyoyu brand — Fondos" description="Fondos corporativos de Wildyoyu">
   <section class="section" id="wallpapers">
     <div class="container">
-      <h2 class="h2">Fondos de pantalla</h2>
-      <p class="intro">Descarga libre para uso personal. Incluye una carpeta especial de marca.</p>
+      <h2 class="h2">Wildyoyu brand</h2>
+      <p class="intro">Fondos corporativos de la marca. Descarga libre para uso personal.</p>
 
-      <!-- Masonry Pinterest -->
       <div class="masonry" id="masonry">
-        <!-- Carpeta: Wildyoyu brand -->
-        <article class="pin">
-          <a class="folder-card" href="/wallpapers/brand" aria-label="Abrir carpeta Wildyoyu brand">
-            <img src={brandCover} alt="Portada Wildyoyu brand" loading="eager" decoding="async" />
-            <div class="folder-meta">
-              <strong>Wildyoyu brand</strong>
-              <span class="count">{brandWalls.length} fondos</span>
-            </div>
-          </a>
-        </article>
-
-        {normalWalls.map(({ data }, i) => (
-          <article class="pin" data-src={data.src} data-alt={data.alt || "Fondo de pantalla de Wildyoyu"}>
+        {brandWalls.map(({ data }, i) => (
+          <article class="pin" data-src={data.src} data-alt={data.alt || "Fondo de pantalla corporativo Wildyoyu"}>
             <figure class="card">
               <img
                 src={data.src}
-                alt={data.alt || "Fondo de pantalla de Wildyoyu"}
+                alt={data.alt || "Fondo de pantalla corporativo Wildyoyu"}
                 width={data.w}
                 height={data.h}
                 loading={i < 4 ? 'eager' : 'lazy'}
@@ -83,7 +66,6 @@ const brandCover = "/wallpapers/wy7.jpg";
     .section{ padding: clamp(2rem,5vw,3.5rem) 0; }
     .intro{ opacity:.85; text-align:center; max-width:60ch; margin:.5rem auto 1.1rem; }
 
-    /* Masonry responsivo con separación mínima (2px) */
     #wallpapers .container { padding: 2px; margin: 0 auto; max-width: 100vw; box-sizing: border-box; }
     .masonry{ column-count: 2; column-gap: 2px; width: 100%; margin: 0; padding: 0; }
     @media (min-width: 780px){ .masonry{ column-count: 3; } }
@@ -91,7 +73,6 @@ const brandCover = "/wallpapers/wy7.jpg";
 
     .pin{ break-inside: avoid; margin-bottom: 2px; }
 
-    /* Tarjeta normal */
     .card{ position:relative; display:block; border-radius:10px; overflow:hidden; border:none; box-shadow:none; margin:0; }
     .card img{ display:block; width:100%; height:auto; object-fit:cover; margin:0; padding:0; border-radius:10px; }
 
@@ -107,21 +88,6 @@ const brandCover = "/wallpapers/wy7.jpg";
     .dl svg{ width:18px; height:18px; display:block; }
     @media (hover:none){ .dl{ opacity:1; transform:none; background: var(--fg); color: color-mix(in oklab, var(--bg0) 92%, black); } }
 
-    /* Carpeta (folder card) */
-    .folder-card{
-      position:relative; display:block; border-radius:12px; overflow:hidden; text-decoration:none; color:inherit;
-      background: color-mix(in oklab, var(--bg1) 70%, white 5%); border:1px solid var(--stroke);
-    }
-    .folder-card img{ display:block; width:100%; height:auto; object-fit:cover; filter: brightness(.9) contrast(1.05); }
-    .folder-meta{
-      position:absolute; inset:auto 0 0 0; padding:10px 12px;
-      display:flex; align-items:center; justify-content:space-between; gap:8px;
-      background: linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.45));
-      font-weight:900;
-    }
-    .folder-meta .count{ opacity:.85; font-weight:800; font-size:.95rem; }
-
-    /* Lightbox */
     .wb{ inset:0; border:0; padding:0; background: transparent; }
     .wb::backdrop{ background: rgba(0,0,0,.7); backdrop-filter: blur(2px); }
     .wb .wb-wrap{ position: fixed; inset: 0; display:grid; place-items:center; padding: clamp(10px, 4vw, 26px); }
@@ -145,7 +111,6 @@ const brandCover = "/wallpapers/wy7.jpg";
     }
     .wb-dl svg{ width:20px; height:20px; display:block; }
 
-    /* Defensa contra “A” fantasma */
     .card a::before{ content:none !important; }
   </style>
 
@@ -170,7 +135,7 @@ const brandCover = "/wallpapers/wy7.jpg";
     masonry.addEventListener('click', (e) => {
       const card = e.target.closest('.pin');
       if (!card) return;
-      if (e.target.closest('.dl') || e.target.closest('.folder-card')) return; // no abrir si es descarga o carpeta
+      if (e.target.closest('.dl')) return;
       e.preventDefault();
       openBox(card.dataset.src, card.dataset.alt);
     }, { passive: false });
